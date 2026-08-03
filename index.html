@@ -34,6 +34,15 @@
   .say{border-left:2px solid rgba(242,149,92,.4);background:transparent;padding:6px 0 6px 12px;margin:8px 0;color:var(--orange)}
   .say b{color:var(--orange-bright);font-weight:700}
   .mayb{border-left:2px solid rgba(79,214,160,.4);background:transparent;padding:6px 0 6px 12px;margin:8px 0;color:var(--green)}
+  .mind{border-left:2px solid rgba(96,165,250,.5);padding:6px 0 6px 12px;margin:8px 0;color:#7fb4ff;font-size:13px}
+  .hidden{display:none}
+  .modetog{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+  .modetog button{background:transparent;border:0;color:var(--muted);font:inherit;font-size:12px;font-weight:700;padding:6px 13px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:.15s}
+  .modetog button.on{background:var(--orange);color:#20130a}
+  .modetog button:not(.on):hover{color:var(--ink)}
+  .dsbanner{display:flex;align-items:center;gap:8px;background:#2a1e10;border:1px solid #e0862b;color:#e6b93f;border-radius:8px;padding:8px 12px;margin:2px 0 10px;font-size:12px;font-weight:700}
+  .dsbanner .x{margin-left:auto;background:none;border:0;color:inherit;cursor:pointer;font-size:16px;line-height:1}
+  .coachrow{margin:12px 0 2px;font-size:12px;font-weight:600;color:var(--muted)}
   .mayb b{color:#8fe6c0;font-weight:700}
   .note{color:var(--muted);font-style:italic;font-size:13px;margin:6px 0}
   .ask{display:block;font-size:14px;color:var(--orange);font-weight:600;margin:14px 0 5px}
@@ -156,14 +165,19 @@
   <input id="p_name" placeholder="Prospect name">
   <input id="p_co" placeholder="Company">
   <input id="p_email" placeholder="Email (for GHL match)" style="min-width:220px">
-  <span class="pill">Qualify, don't sell · Disqualify fast · Book the audit</span>
+  <span class="modetog" id="modeTog">
+    <button type="button" data-mode="strategy" class="on" onclick="setMode('strategy',true)">Strategy · Pure Performance</button>
+    <button type="button" data-mode="coaching" onclick="setMode('coaching',true)">Coaching Program</button>
+  </span>
+  <span class="pill" id="modePill">Qualify, don't sell · Disqualify fast · Book the audit</span>
 </header>
 
 <div class="wrap">
   <!-- ============ LEFT: SCRIPT ============ -->
   <div class="col">
-    <h2>The Script · orange is what you say · green is optional</h2>
+    <h2 id="scriptHead">The Script · <span style="color:var(--orange)">orange</span> = what you say · <span style="color:var(--green)">green</span> = optional</h2>
 
+    <div id="script-strategy">
     <div class="card">
       <div class="step">1 · OPEN + PROTECT TIME · first 3 min (≈80% of the call)</div>
       <div class="note">Icebreaker, quick and warm:</div>
@@ -235,6 +249,100 @@
       <div class="note">Send the audit request link · subject "[Brand] Audit" · correct CCs · signature.
       <a href="https://audit-request-generator.vercel.app/" target="_blank">audit-request-generator</a></div>
     </div>
+    </div><!-- /#script-strategy -->
+
+    <div id="script-coaching" class="hidden">
+    <div class="card">
+      <div class="step">1 · OPEN · LEAD WITH THE GUARANTEE · 2 to 3 min</div>
+      <div class="mind">You're here to qualify, not sell. A "no" or "not yet" is a good outcome. The guarantee is the anchor of this call, lead with it. Everything flows from there.</div>
+      <div class="say">"Before I tell you anything about the program, I want to start with our guarantee, because it's actually the reason this call exists."</div>
+      <div class="say">"We have a 100% money-back guarantee written directly into our agreement. No forms, no deliberation. If at any point you don't find this valuable to your business, you send us a message and we refund you. That's it."</div>
+      <div class="say">"Because we stand behind that guarantee completely, we're very intentional about who we accept. We don't want to fill a spot with a company we can't genuinely help, that's a bad experience for them and a wasted seat for someone who'd really benefit."</div>
+      <div class="say">"This is a 90-day winning-ad bootcamp. We hand you the exact frameworks we use internally to launch campaigns that make our partners money, and we support you through the work to get there."</div>
+      <div class="say">"So my job today is to make sure your business is the right fit. I'll ask you a series of questions, I'll be honest about what I find, then I'll walk you through the program so you can ask me anything. Sound good?"</div>
+      <div class="say">"Which ad did you see, was it the founders one?"</div>
+      <div class="mind">The prospect should relax within 60 seconds. Don't jump into questions before the guarantee framing fully lands, or it doesn't work.</div>
+    </div>
+
+    <div class="card">
+      <div class="step">2 · DISCOVERY · 10 to 15 min</div>
+      <div class="mind">Business basics first, marketing second, economics third. Follow their answers, don't robotically tick a list. <b>Ask the questions on the right and log the answers there.</b></div>
+      <div class="say">"How long have you been running? What's your monthly revenue right now? What's your average sale or order value?"</div>
+      <div class="say">"Where are your customers coming from, warm network, referrals, or cold sources?"</div>
+      <div class="mind">Most important question. All-warm-network revenue is real signal but behaves differently from cold. Zero cold customers is a flag to address head-on in Qualify.</div>
+      <div class="say">"Have you run paid ads before, Meta or Google? Do you do any email marketing? What's your biggest challenge finding new customers?"</div>
+      <div class="say">"What's your gross margin on a typical sale? Rough sense of what it costs to acquire a customer? Any repeat purchases? What's your refund rate?"</div>
+    </div>
+
+    <div class="card">
+      <div class="step">3 · QUALIFY · the decision point</div>
+      <div class="mind">Check three things, then say your read out loud: <b>1) Product-market fit</b> (does the product work, and have cold strangers bought?) · <b>2) Unit economics</b> (enough margin for ads to be profitable?) · <b>3) Time</b> (5 to 10 hrs/week?). And quietly: do I like this person? <b>Set these in the fit engine on the right.</b></div>
+      <div class="mind">Three stages: product works → cold traffic converts → scalable distribution. This program is for people who cleared stage 1 and are ready to prove stage 2.</div>
+      <div class="mayb">If <abbr title="Product-Market Fit">PMF</abbr> is shaky: "What you have is real signal that your product works when you're in the room, that's genuinely not nothing. But cold traffic behaves differently, they're harder to convert and need more before they say yes. Before we run ads, you want a few cold customers who found you with no warm connection. That tells you the product can stand on its own."</div>
+    </div>
+
+    <div class="card">
+      <div class="step">4 · AUTHORITY · 1 to 2 min, light touch</div>
+      <div class="say">"We run a performance marketing agency where we only get paid when our clients grow. We built this program because some of the best businesses we've seen weren't quite ready for that model yet, what they needed was to build the foundation first. Everything here is the exact process we use internally on real campaigns."</div>
+      <div class="mayb">If relevant: "$150M+ built across our own companies, multiple exits, a Forbes 30 Under 30, and a top-15 Inc 5000 consumer brand."</div>
+      <div class="mind">One beat, then move on. Authority comes from the quality of your questions and the accuracy of your diagnosis, not from listing credentials.</div>
+    </div>
+
+    <div class="card">
+      <div class="step">5 · PROGRAM OVERVIEW · 8 to 10 min</div>
+      <div class="say">"This is a bootcamp, not a course. You do the actual work. The 90-minute sessions aren't the magic, the homework is the gold. What we walk you through week by week is the exact process we use internally to build winning ad campaigns."</div>
+      <div class="say"><b>Lead with the research:</b> "The first thing we do is a deep customer, competitor and market research report, 200 to 300 pages. Real quotes from Reddit, Quora, competitor reviews, forums, actual people talking about the problem and what they wish existed. That's voice-of-customer at a level most businesses never get, and it's what you write your ads to. Included, we run it for you at the start."</div>
+      <div class="say">"We also build you a custom AI marketing strategist trained on your research. As you complete each week's homework, it assembles your campaign. You're building a real artifact, not busywork."</div>
+      <div class="note">The arc (walk 2 to 3 weeks, don't read the menu): Wk 1-2 research + avatar · Wk 3 offer architecture · Wk 4 video script + 1:1 review · Wk 5 production brief (iPhone + $100-150 Fiverr editor) · Wk 6 landing page copy · Wk 7-8 launch (~$2k ad spend) · Wk 9-12 iterate and score.</div>
+      <div class="say"><b>Be upfront about homework:</b> "The 90-minute sessions aren't magic. You're doing 5 to 10 hours of homework a week that builds the actual campaign, that's the real product. If you can't make that time, this won't work, and I'd rather tell you now than after you've paid."</div>
+      <div class="say"><b>Economics:</b> "$2,500 a month for three months, $7,500 total, plus about $2,000 of your own ad spend in month three. A winning ad is one that's profitable after ad spend and cost of goods. Once you have it, you can dial the spend to $5k, $10k, $20k."</div>
+      <div class="mayb">Key line: "You don't need to be a marketing expert. You need to be an expert at your own business."</div>
+    </div>
+
+    <div class="card">
+      <div class="step">6 · RE-ANCHOR THE GUARANTEE · before price questions</div>
+      <div class="say">"I mentioned the guarantee at the top, to make it concrete: it's written directly into the agreement. If at any point you feel this isn't valuable to your business, you send us a message and we refund you. No forms, no case to make."</div>
+      <div class="say">"This is also why we ask the questions we ask up front. We're taking on that financial risk, so we need to accept the right people. We're not filling seats, we're filling the right seats."</div>
+    </div>
+
+    <div class="card">
+      <div class="step">7 · THE ONLY REAL CATCH · TIME</div>
+      <div class="say">"The financial risk is fully on us. The only thing you're putting at risk is your time, 5 to 10 hours a week for 12 weeks. If you have that, there's no other catch. And the real question is: is figuring out how to get customers scalably the most important thing your business needs right now? If yes, this is the time."</div>
+      <div class="mind">Watch for the prospect who says they have the time but clearly doesn't. Ask specifically: what does your week look like, do you have a team or is it mostly you?</div>
+    </div>
+
+    <div class="card">
+      <div class="step">8 · ONE-CALL CLOSE INCENTIVE</div>
+      <div class="say">"If you put down a $1,000 deposit today, we cover your $2,000 in ad spend, a $2,000 discount. I'm not trying to be pushy, for us it's about locking in your spot without one more follow-up call. This cohort fills up and I've been told not to chase leads."</div>
+      <div class="say">"And the deposit is refundable after Session 1. If you show up and it doesn't rock your world, we refund it."</div>
+      <div class="mayb">If they genuinely need time: "That's totally fine. As soon as the deposit lands, I'll kick off your research that same day, you'll have 200-plus pages on your market before the cohort even starts."</div>
+      <div class="mind">Both decision-makers should ideally be on the call. If a partner needs to be looped in, surface that at the open, not at close time.</div>
+    </div>
+
+    <div class="card">
+      <div class="step">9 · CLOSE</div>
+      <div class="say">"What questions do you have? And be honest, do you have any hesitations?"</div>
+      <div class="mind">Not rhetorical, wait for the real answer. Name the objection: cashflow, money, time, camera, or a missing stakeholder. Address the specific one, not a blanket reassurance.</div>
+      <div class="mayb">If ready: "Can I send you the deposit link and agreement right now? I'll kick off your research today and send you a guide on how to use it."</div>
+      <div class="mayb">If they want to see it first: "Let me send you the Session 1 recording, 90 minutes, you'll see the research depth and our full approach. Watch it and follow up in a couple of days. The deposit's even refundable after Session 1, so there's no risk to putting it down."</div>
+    </div>
+
+    <div class="card">
+      <div class="step">📋 PROGRAM DETAILS · keep for when they ask</div>
+      <div class="note"><b>Economics:</b> $2,500/mo × 3 = $7,500 total, plus ~$2,000 their own ad spend (month 3). $1,000 deposit today covers that $2k spend (a $2k discount) and is refundable after Session 1.</div>
+      <div class="note"><b>What they get:</b> 200-300pg research report · custom AI marketing strategist (24/7, trained on their research) · week-by-week homework that builds the campaign · 3 one-on-one video script reviews · Slack access to the team.</div>
+      <div class="note"><b>Cohort:</b> ~10 people, capped to protect 1:1 time. Next start: update per block.</div>
+      <table class="ref"><tr><th>Objection</th><th>Response</th></tr>
+        <tr><td>Not good on camera</td><td>Doesn't have to be you, a team member or spouse works. The script carries it. $100-150 Fiverr editor polishes.</td></tr>
+        <tr><td>Need to think about it</td><td>Pin the real hesitation: time, money, camera, or a missing stakeholder. Address that specifically.</td></tr>
+        <tr><td>When do I see results?</td><td>Launch wk 7-8, iterate month 3. But offer/persona clarity sharpens your existing sales convos within weeks 1-2.</td></tr>
+        <tr><td>I already have an agency</td><td>This is the strategy layer underneath. Agencies execute, they don't do the audience-first diagnostic your product needs.</td></tr>
+        <tr><td>I'm too early</td><td>Have you sold to anyone who doesn't know you? If not, that's the thing to prove first.</td></tr>
+        <tr><td>Can't afford it</td><td>Is it cash timing or uncertainty it's worth it? Different problems, different answers. Separate them.</td></tr>
+      </table>
+      <div class="note"><b>FAQ:</b> Platform = primarily Meta (skills transfer). Time = 90-min session + 5-10 hrs homework. Audience = none needed, built for cold. <abbr title="Business to Business">B2B</abbr>/high-ticket = best for <abbr title="Business to Consumer">B2C</abbr> and <abbr title="Business to Small &amp; Medium Business">B2SMB</abbr>, discuss enterprise fit. Co-founders = yes, encouraged. Missed session = recorded, except the live 1:1 script reviews.</div>
+    </div>
+    </div><!-- /#script-coaching -->
   </div>
 
   <!-- ============ RIGHT: CAPTURE ============ -->
@@ -357,6 +465,50 @@
 
       <div id="verdict" class="verdict v-grey">
         <div class="tag">Set the ad spend to get the call</div>
+        <div class="why"></div>
+      </div>
+    </div>
+
+    <div class="card engine hidden" id="engineCoach">
+      <div class="inputs">
+        <h3>⚑ Coaching fit engine</h3>
+        <div class="note">Checks the three gates from the script: product-market fit (have cold strangers bought), unit economics (margin for profitable ads), and time. Returns your read and the line to say.</div>
+
+        <div class="dsbanner hidden" id="dsBanner">↩ Downsold from a Strategy call, this is flagged in the summary.<button class="x" type="button" onclick="clearDownsold()">×</button></div>
+
+        <div class="metric" id="marginMetric">
+          <div class="mval" id="marginVal">—</div>
+          <div>
+            <div class="mlabel">Ads-viable margin</div>
+            <div class="mnote" id="marginNote">Needs gross margin (and AOV) above</div>
+          </div>
+          <div class="target">Target<br>70%+</div>
+        </div>
+
+        <span class="ask">Product-market fit: has anyone who did NOT already know them bought?</span>
+        <div id="cfpmf">
+          <label class="qopt"><input type="radio" name="cf_pmf" value="cold"><span><span class="t">Yes, cold strangers have bought</span><span class="d"> ready to prove paid scale</span></span></label>
+          <label class="qopt"><input type="radio" name="cf_pmf" value="warm"><span><span class="t">Only warm network / referrals so far</span><span class="d"> works in the room, not proven cold</span></span></label>
+          <label class="qopt"><input type="radio" name="cf_pmf" value="pre"><span><span class="t">Pre-launch / no real sales yet</span><span class="d"> too early, prove the product first</span></span></label>
+        </div>
+
+        <label class="trig"><input type="checkbox" id="cf_loved"> Product has real love (reviews, repeat buys, referrals, praise)</label>
+
+        <span class="ask">Time: can they commit 5 to 10 hrs/week for 12 weeks, outside the 90-min sessions?</span>
+        <select class="f" id="cf_time">
+          <option value="">not asked yet</option>
+          <option value="yes">Yes, they have the time</option>
+          <option value="maybe">Unsure / tight</option>
+          <option value="no">No, no bandwidth</option>
+        </select>
+
+        <div class="coachrow">Soft read</div>
+        <label class="trig"><input type="checkbox" id="cf_like"> I like this person / would want them in the cohort</label>
+        <label class="trig"><input type="checkbox" id="cf_downsold"> ↩ This call was downsold from a Strategy call</label>
+      </div>
+
+      <div id="coachVerdict" class="verdict v-grey">
+        <div class="tag">Answer the three gates to get the read</div>
         <div class="why"></div>
       </div>
     </div>
@@ -558,8 +710,94 @@
   }
   function resyncAuto(){Object.keys(AUTO).forEach(k=>AUTO[k]=true);autoFill();renderVerdict();toast('Re-synced from your answers');}
 
+  /* ---------- call mode + coaching fit engine ---------- */
+  let MODE='strategy';
+  const EC={"v-red":"#e0504f","v-blue":"#f2803a","v-amber":"#e6b93f","v-teal":"#a9d94f","v-green":"#4fd6a0","v-grey":"#35485c"};
+  function setBorder(el,cls){const m=EC[cls]||"#35485c";el.style.borderColor=m;el.style.boxShadow=(cls==="v-grey"||!cls)?"none":"0 0 18px -7px "+m;}
+  function syncDownsell(){const d=document.getElementById('cf_downsold');document.getElementById('dsBanner').classList.toggle('hidden',!(d&&d.checked));}
+  function clearDownsold(){const d=document.getElementById('cf_downsold');if(d)d.checked=false;syncDownsell();}
+  function applyMode(){
+    const c=MODE==='coaching';
+    document.getElementById('script-strategy').classList.toggle('hidden',c);
+    document.getElementById('script-coaching').classList.toggle('hidden',!c);
+    document.getElementById('engineCard').classList.toggle('hidden',c);
+    document.getElementById('engineCoach').classList.toggle('hidden',!c);
+    document.querySelectorAll('#modeTog button').forEach(b=>b.classList.toggle('on',b.dataset.mode===MODE));
+    document.getElementById('modePill').textContent=c?'Lead with the guarantee · Qualify PMF, margin, time · One-call close':"Qualify, don't sell · Disqualify fast · Book the audit";
+    document.getElementById('scriptHead').innerHTML=c
+      ?'Coaching script · <span style="color:var(--orange)">orange</span> = say · <span style="color:#7fb4ff">blue</span> = mental note · <span style="color:var(--green)">green</span> = sometimes'
+      :'The Script · <span style="color:var(--orange)">orange</span> = what you say · <span style="color:var(--green)">green</span> = optional';
+    renderCoach();
+  }
+  function inferPmfFromSources(){
+    if(document.querySelector('input[name=cf_pmf]:checked')) return;   // never override a manual pick
+    const s=fv('m_src').toLowerCase(); if(!s) return;
+    let v=null;
+    if(/\bcold\b/.test(s)) v='cold';
+    else if(/warm|referr|network|word of mouth|friends|family/.test(s)) v='warm';
+    if(v){ const r=document.querySelector('input[name=cf_pmf][value="'+v+'"]'); if(r) r.checked=true; }
+  }
+  function setMode(m,userAction){
+    // downsell is a manual flag now — the rep ticks the box only when it truly was a downsell.
+    // (ad spend is a shared discovery question, so it can't reliably auto-detect a strategy-track call.)
+    if(userAction&&m==='coaching'&&MODE==='strategy'){
+      inferPmfFromSources();   // still mirror the customer-sources answer into the coaching PMF gate
+    }
+    MODE=m; applyMode();
+  }
+  function coachMargin(){
+    const gm=pct(fv('m_margin')), aov=amt(fv('m_aov'));
+    let viable=null; if(gm!==null){ viable = gm>=0.70 || (aov!==null&&aov>=2000&&gm>=0.25); }
+    return {gm,aov,viable};
+  }
+  function renderCoach(){
+    const el=document.getElementById('engineCoach'); if(!el) return;
+    const mm=coachMargin(), mv=document.getElementById('marginVal'), mn=document.getElementById('marginNote'), mt=document.getElementById('marginMetric');
+    mt.classList.remove('good','warn','bad');
+    if(mm.gm===null){ mv.textContent='—'; mn.textContent='Needs gross margin above'; }
+    else { mv.textContent=Math.round(mm.gm*100)+'%';
+      if(mm.viable){ mt.classList.add('good'); mn.textContent=mm.gm>=0.70?'Margin supports profitable paid ads':'High AOV ('+fmtP(mm.aov)+') carries the thinner margin'; }
+      else { mt.classList.add('bad'); mn.textContent='Under 70% and not a >$2k AOV / 25%+ exception, ads will struggle to profit'; }
+    }
+    document.querySelectorAll('#cfpmf .qopt').forEach(o=>o.classList.toggle('sel',o.querySelector('input').checked));
+    syncDownsell();
+    const pmf=(document.querySelector('input[name=cf_pmf]:checked')||{}).value||null;
+    const time=fv('cf_time'), loved=document.getElementById('cf_loved').checked, like=document.getElementById('cf_like').checked;
+    const box=document.getElementById('coachVerdict');
+    const say=(cls,tag,why,script,trace,caution)=>{ box.className='verdict '+cls; setBorder(el,cls);
+      box.innerHTML='<div class="tag">'+tag+'</div><div class="why">'+why+'</div>'
+        +(trace&&trace.length?'<div class="trace">'+trace.map(x=>'• '+x).join('<br>')+'</div>':'')
+        +(caution?'<div class="caution">'+caution+'</div>':'')
+        +(script?'<div class="script">Read: '+script+'</div>':''); };
+    if(!pmf){ box.className='verdict v-grey'; setBorder(el,'v-grey'); box.innerHTML='<div class="tag">Answer the three gates to get the read</div><div class="why"></div>'; return; }
+    const trace=[];
+    trace.push('<abbr title="Product-Market Fit">PMF</abbr>: '+({cold:'cold strangers have bought',warm:'warm network only',pre:'pre-launch / no sales'}[pmf]));
+    if(mm.gm!==null) trace.push('Margin '+Math.round(mm.gm*100)+'% '+(mm.viable?'— viable for paid ads':'— thin for paid ads'));
+    if(time) trace.push('Time: '+({yes:'has 5 to 10 hrs/wk',maybe:'unsure / tight',no:'no bandwidth'}[time]));
+    if(loved) trace.push('Product has real love');
+    if(pmf==='pre') return say('v-blue','⏳ TOO EARLY · prove the product first',
+      "No real sales yet. Ads amplify a product that already works, they can't manufacture demand. Point them at proving the product before paying for traffic.",
+      "\"Before ads make sense you want proof the product works, ideally a few people who bought who didn't already know you. Let's get that first, then this program is exactly right.\"",trace);
+    if(pmf==='warm') return say('v-amber','⏳ NOT YET · prove cold sales first',
+      "Real signal the product works in the room, but cold traffic behaves differently. The honest move is to land a few cold sales before running ads.",
+      "\"What you have is real, a lot of people don't even have that. But cold traffic is harder, they need more before they say yes. Get a few cold customers who found you with no warm connection and you'll know the product stands on its own. Then this is the perfect next step.\"",trace);
+    if(mm.gm!==null&&!mm.viable) return say('v-red','⛔ MARGIN PROBLEM · don\'t close',
+      "Sells cold, but the margin can't support profitable ads at scale, closing this leads to a week-six refund. Be honest about the economics first.",
+      "\"You've got real demand, which is great. But with these margins, paid ads would struggle to profit even when they work, and I don't want you to find that out in week six. Let's talk about whether there's room to improve the economics first.\"",trace);
+    if(time==='no') return say('v-amber','⏰ TIME PROBLEM · be direct',
+      "<abbr title='Product-Market Fit'>PMF</abbr> and economics are there, but without 5 to 10 hrs/week the homework doesn't get done and it becomes a paid-for library book that ends in a refund. Address time before closing.",
+      "\"Everything about your business is a fit. The one honest catch is time, 5 to 10 hours a week for 12 weeks, and the homework is the whole product. Before we go further, is that time realistically there?\"",trace);
+    let caution='';
+    if(mm.gm===null) caution="⚠ Gross margin not confirmed, get it to be sure the economics support ads.";
+    else if(time==='maybe') caution="⚠ Time is unsure, pin down what their week actually looks like before closing.";
+    else if(!loved) caution="⚠ Real product love not confirmed (reviews / repeat / referrals), sanity-check it.";
+    return say('v-green','✅ READY · close on this call',
+      "Cleared all three gates: cold sales, viable margin"+(time==='yes'?", and the time":"")+". Re-anchor the guarantee, then go for the one-call close.",
+      "\"Honestly, you're exactly who this is built for. Here's what I'd do: put down the $1,000 deposit today, we cover your $2,000 in ad spend, and I'll kick off your research this afternoon. It's refundable after Session 1. Want me to send the link and agreement?\"",trace,caution);
+  }
+
   function renderVerdict(){
-    document.querySelectorAll('.qopt').forEach(o=>o.classList.toggle('sel',o.querySelector('input').checked));
+    document.querySelectorAll('#qopts .qopt').forEach(o=>o.classList.toggle('sel',o.querySelector('input').checked));
     const box=document.getElementById('verdict'), eng=document.getElementById('engineCard');
     const setB=cls=>{const m={"v-red":"#e0504f","v-blue":"#f2803a","v-amber":"#e6b93f","v-teal":"#a9d94f","v-green":"#4fd6a0","v-grey":"#35485c"}[cls]||"#35485c";eng.style.borderColor=m;eng.style.boxShadow=(cls==="v-grey"||!cls)?"none":"0 0 18px -7px "+m;};
     const q=currentQ(); const blk=blockersList(); const trg=triggersList();
@@ -611,8 +849,9 @@
     if(e.target.matches(SRC)){
       if(e.target.id==='m_arev'&&e.isTrusted) annualRevAuto=(fv('m_arev')===''); // manual entry overrides; blanking it resumes auto
       if(e.target.id==='m_mrev') syncAnnual();
-      autoFill(); renderVerdict(); return;
+      autoFill(); renderVerdict(); renderCoach(); return;
     }
+    if(e.target.matches('input[name=cf_pmf], #cf_loved, #cf_time, #cf_like, #cf_downsold')){ renderCoach(); return; }
     if(e.target.matches('input[name=q], .trig-c, .block-c, #tc, #scale, .verify-said')){
       if(e.isTrusted){                       // a real click overrides the auto pick
         if(e.target.matches('input[name=q]')) AUTO.q=false;
@@ -636,20 +875,34 @@
 
   function val(id){const e=document.getElementById(id);return e?e.value.trim():'';}
   function buildSummary(){
-    const q=currentQ(); const blk=blockersList(); const trg=triggersList();
-    let v = blk.length ? MODEL(blk) : (q ? ((q==="3"&&trg.length)?ESC:VERDICTS[q]) : null);
     const opt={yes:"Yes",maybe:"Not sure",no:"No"};
+    const coaching=MODE==='coaching';
+    const dn=document.getElementById('cf_downsold')&&document.getElementById('cf_downsold').checked;
     const L=[];
-    L.push("YAMU CALL 1 QUALIFICATION SUMMARY");
+    L.push(coaching?"YAMU COACHING PROGRAM CALL SUMMARY":"YAMU CALL 1 QUALIFICATION SUMMARY");
     L.push(val('p_name')+ (val('p_co')?" · "+val('p_co'):"") + (val('p_email')?" · "+val('p_email'):""));
+    if(dn) L.push("** DOWNSOLD FROM STRATEGY -> COACHING PROGRAM **");
     L.push("");
-    L.push("VERDICT: "+(v?v.tag.replace(/[^\x00-\x7F]/g,'').trim():"(no ad spend answer)"));
-    if(v) L.push("Reason: "+v.why);
-    if(blk.length) L.push("Model blockers: "+blk.join("; "));
-    if(q) L.push("Ad spend: "+ELIG[q]);
-    if(trg.length) L.push("Escalation signals: "+trg.join(", "));
-    if(val('tc')) L.push("Affordability (trial close): "+opt[val('tc')]);
-    if(val('scale')) L.push("Scalability: "+opt[val('scale')]);
+    if(coaching){
+      const pmf=(document.querySelector('input[name=cf_pmf]:checked')||{}).value||null;
+      const mm=coachMargin(); const time=fv('cf_time'); const cv=document.querySelector('#coachVerdict .tag');
+      L.push("READ: "+(cv?cv.textContent.replace(/[^\x00-\x7F]/g,'').trim():"(gates not set)"));
+      L.push("PMF (cold sales): "+(pmf?{cold:'cold strangers have bought',warm:'warm network only',pre:'pre-launch / no sales'}[pmf]:"—"));
+      L.push("Ads-viable margin: "+(mm.gm===null?"—":Math.round(mm.gm*100)+"% "+(mm.viable?"(viable)":"(thin)")));
+      if(time) L.push("Time (5-10 hrs/wk): "+opt[time]);
+      if(document.getElementById('cf_loved').checked) L.push("Product love: yes (reviews/repeat/referrals)");
+      if(document.getElementById('cf_like').checked) L.push("Rep read: likes them / cohort fit");
+    } else {
+      const q=currentQ(); const blk=blockersList(); const trg=triggersList();
+      let v = blk.length ? MODEL(blk) : (q ? ((q==="3"&&trg.length)?ESC:VERDICTS[q]) : null);
+      L.push("VERDICT: "+(v?v.tag.replace(/[^\x00-\x7F]/g,'').trim():"(no ad spend answer)"));
+      if(v) L.push("Reason: "+v.why);
+      if(blk.length) L.push("Model blockers: "+blk.join("; "));
+      if(q) L.push("Ad spend: "+ELIG[q]);
+      if(trg.length) L.push("Escalation signals: "+trg.join(", "));
+      if(val('tc')) L.push("Affordability (trial close): "+opt[val('tc')]);
+      if(val('scale')) L.push("Scalability: "+opt[val('scale')]);
+    }
     L.push("");
     L.push("BUSINESS: yrs "+val('m_age')+" | mo rev "+val('m_mrev')+" | annual "+val('m_arev')+" | AOV "+val('m_aov')+" | margin "+val('m_margin')+" | LTV "+val('m_ltv')+" | CAC "+val('m_cac')+" | ROAS "+val('m_roas')+" | seasonality "+val('m_season')+" | sources "+val('m_src'));
     L.push("MARKETING: total "+val('mk_total')+" | Meta "+val('mk_meta')+" | Google "+val('mk_google')+" | Other "+val('mk_other')+" | channel "+val('mk_channel')+" | email "+val('mk_email')+" | creative "+val('mk_creative'));
@@ -665,7 +918,7 @@
   function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
   function copySummary(){navigator.clipboard.writeText(buildSummary()).then(()=>toast('Summary copied, paste into the GHL contact note')).catch(()=>{const ta=document.createElement('textarea');ta.value=buildSummary();document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Summary copied');});}
   function downloadSummary(){const name=(val('p_name')||'call').replace(/[^a-z0-9]+/gi,'_');const blob=new Blob([buildSummary()],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='YAMU_Call1_'+name+'.txt';a.click();toast('Downloaded');}
-  function resetAll(){document.querySelectorAll('input,textarea,select').forEach(e=>{if(e.type==='radio'||e.type==='checkbox')e.checked=false;else e.value='';});document.querySelectorAll('.flag').forEach(f=>f.remove());Object.keys(AUTO).forEach(k=>AUTO[k]=true);annualRevAuto=true;autoFill();renderVerdict();}
+  function resetAll(){document.querySelectorAll('input,textarea,select').forEach(e=>{if(e.type==='radio'||e.type==='checkbox')e.checked=false;else e.value='';});document.querySelectorAll('.flag').forEach(f=>f.remove());Object.keys(AUTO).forEach(k=>AUTO[k]=true);annualRevAuto=true;autoFill();renderVerdict();applyMode();}
 
   /* ---------- saved calls (localStorage history) ---------- */
   const LS_KEY='yamu_call1_saved';
@@ -676,26 +929,30 @@
     const f={};
     document.querySelectorAll('input,textarea,select').forEach(e=>{
       if(e.type==='file'||e.classList.contains('drawer-search')||e.id==='histSearch') return;
-      if(e.type==='radio'){ if(e.name==='q'&&e.checked) f['q']=e.value; return; }
+      if(e.type==='radio'){ if(e.checked) f['@'+e.name]=e.value; return; }
       if(e.type==='checkbox'){ if(e.id) f['#'+e.id]=e.checked; return; }
       if(e.id) f['#'+e.id]=e.value;
     });
-    const q=currentQ(),blk=blockersList(),trg=triggersList();
-    const v=blk.length?MODEL(blk):(q?((q==="3"&&trg.length)?ESC:VERDICTS[q]):{cls:'v-grey',tag:'No verdict yet'});
-    return {fields:f, auto:Object.assign({},AUTO),
+    let vt,vc;
+    if(MODE==='coaching'){ const cv=document.querySelector('#coachVerdict .tag'); vt=cv?cv.textContent:'Coaching call'; vc=(document.getElementById('coachVerdict').className.match(/v-[a-z]+/)||['v-grey'])[0]; }
+    else { const q=currentQ(),blk=blockersList(),trg=triggersList(); const v=blk.length?MODEL(blk):(q?((q==="3"&&trg.length)?ESC:VERDICTS[q]):{cls:'v-grey',tag:'No verdict yet'}); vt=v.tag; vc=v.cls; }
+    const dn=document.getElementById('cf_downsold')&&document.getElementById('cf_downsold').checked;
+    return {fields:f, auto:Object.assign({},AUTO), mode:MODE, downsold:!!dn,
       name:val('p_name')||'(no name)', company:val('p_co'), email:val('p_email'),
-      verdictTag:v.tag, verdictCls:v.cls, summary:buildSummary()};
+      verdictTag:vt, verdictCls:vc, summary:buildSummary()};
   }
   function restoreCall(snap){
     resetAll();
+    if(snap.mode) MODE=snap.mode;
     for(const k in snap.fields){
-      if(k==='q'){ const r=document.querySelector('input[name=q][value="'+snap.fields.q+'"]'); if(r) r.checked=true; continue; }
+      if(k[0]==='@'){ const r=document.querySelector('input[name="'+k.slice(1)+'"][value="'+snap.fields[k]+'"]'); if(r) r.checked=true; continue; }
+      if(k==='q'){ const r=document.querySelector('input[name=q][value="'+snap.fields.q+'"]'); if(r) r.checked=true; continue; } // legacy
       const el=document.getElementById(k.slice(1)); if(!el) continue;
       if(el.type==='checkbox') el.checked=!!snap.fields[k]; else el.value=snap.fields[k];
     }
     if(snap.auto) Object.keys(AUTO).forEach(x=>AUTO[x]= (x in snap.auto)?snap.auto[x]:false);
     document.querySelectorAll('.verify-said').forEach(i=>i.dispatchEvent(new Event('input',{bubbles:true})));
-    autoFill(); renderVerdict();
+    autoFill(); renderVerdict(); applyMode();
   }
 
   function saveCall(){
@@ -757,7 +1014,8 @@
     r.readAsText(file);
   }
 
-  autoFill(); renderVerdict();
+  (function initDownsold(){ const d=document.getElementById('cf_downsold'); if(d) d.checked=false; })();  // always start clean, ignore browser form-restore
+  autoFill(); renderVerdict(); applyMode();
 </script>
 </body>
 </html>
