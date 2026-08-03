@@ -532,10 +532,27 @@
   </div>
   <div class="drawer-search"><input id="histSearch" placeholder="Search name, company, email, verdict…" oninput="renderHistory()"></div>
   <div class="hist-list" id="histList"></div>
-  <div class="drawer-foot">
-    <button onclick="exportSaved()">Export all (.json)</button>
-    <button onclick="document.getElementById('histImport').click()">Import</button>
-    <input type="file" id="histImport" accept="application/json" style="display:none" onchange="importSaved(this.files[0])">
+  <div class="drawer-foot" style="flex-direction:column;align-items:stretch;gap:8px">
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="exportSaved()">Export all (.json)</button>
+      <button onclick="document.getElementById('histImport').click()">Import</button>
+      <input type="file" id="histImport" accept="application/json" style="display:none" onchange="importSaved(this.files[0])">
+      <button onclick="toggleSyncPanel()" style="margin-left:auto">Sync ▾</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px">
+      <span id="syncBadge" style="color:var(--muted)">○ local only</span>
+      <span id="syncStatus" style="color:var(--muted)"></span>
+    </div>
+    <div id="syncPanel" class="hidden" style="display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.02)">
+      <input id="syncUrl" placeholder="Apps Script web-app URL (ends in /exec)" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:12px">
+      <input id="syncKey" placeholder="Secret key (same one you set in the script)" style="width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:12px">
+      <div style="display:flex;gap:8px">
+        <button onclick="saveSyncSettings()">Connect</button>
+        <button onclick="syncPull(false)">Sync now</button>
+        <button onclick="disconnectSync()" style="margin-left:auto">Disconnect</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.4">Stored only in this browser, never in the code. Paste the same URL + key on each device (laptop, home, work) to share your saved calls.</div>
+    </div>
   </div>
 </aside>
 <div id="toast" class="toast"></div>
@@ -964,11 +981,11 @@
     const rec=Object.assign({id:existingIdx>=0?all[existingIdx].id:('c'+Date.now()), savedAt:new Date().toISOString()},snap);
     if(existingIdx>=0){ all[existingIdx]=rec; toast('Updated saved call for '+snap.name); }
     else { all.unshift(rec); toast('Saved '+snap.name); }
-    persistSaved(all);
+    persistSaved(all); remotePush(rec);
   }
   function deleteCall(id,ev){ ev.stopPropagation();
     if(!confirm('Delete this saved call?'))return;
-    persistSaved(loadSaved().filter(x=>x.id!==id)); renderHistory();
+    persistSaved(loadSaved().filter(x=>x.id!==id)); remoteDelete(id); renderHistory();
   }
   function openSaved(id){
     const rec=loadSaved().find(x=>x.id===id); if(!rec)return;
@@ -995,7 +1012,7 @@
       +'</div>').join('');
   }
   function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  function openHistory(){renderHistory();document.getElementById('histBg').classList.add('open');document.getElementById('histDrawer').classList.add('open');document.getElementById('histSearch').focus();}
+  function openHistory(){renderHistory();document.getElementById('histBg').classList.add('open');document.getElementById('histDrawer').classList.add('open');document.getElementById('histSearch').focus();loadSyncUI();if(syncCfg().url)syncPull(true);}
   function closeHistory(){document.getElementById('histBg').classList.remove('open');document.getElementById('histDrawer').classList.remove('open');}
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHistory();});
 
@@ -1014,8 +1031,39 @@
     r.readAsText(file);
   }
 
+  /* ---------- cross-device sync (Google Apps Script + Sheet) ---------- */
+  function syncCfg(){return {url:(localStorage.getItem('yamu_sync_url')||'').trim(), key:(localStorage.getItem('yamu_sync_key')||'').trim()};}
+  function syncStatus(m){const s=document.getElementById('syncStatus'); if(s)s.textContent=m;}
+  function toggleSyncPanel(){const p=document.getElementById('syncPanel'); if(p)p.classList.toggle('hidden');}
+  function loadSyncUI(){const c=syncCfg(); const u=document.getElementById('syncUrl'), k=document.getElementById('syncKey'); if(u)u.value=c.url; if(k)k.value=c.key; updateSyncBadge();}
+  function updateSyncBadge(){const on=!!syncCfg().url; const b=document.getElementById('syncBadge'); if(b){b.textContent=on?'● sync on':'○ local only'; b.style.color=on?'var(--green)':'var(--muted)';}}
+  function saveSyncSettings(){const u=(document.getElementById('syncUrl').value||'').trim(), k=(document.getElementById('syncKey').value||'').trim();
+    if(u)localStorage.setItem('yamu_sync_url',u);else localStorage.removeItem('yamu_sync_url');
+    if(k)localStorage.setItem('yamu_sync_key',k);else localStorage.removeItem('yamu_sync_key');
+    updateSyncBadge(); toast(u?'Sync connected':'Sync off'); if(u)syncPull(false);}
+  function disconnectSync(){localStorage.removeItem('yamu_sync_url');localStorage.removeItem('yamu_sync_key');loadSyncUI();syncStatus('Disconnected — working locally');toast('Sync disconnected');}
+  function remotePull(){return new Promise((resolve,reject)=>{const c=syncCfg(); if(!c.url){resolve([]);return;}
+    const cb='__yamuSync'+Math.floor(performance.now())+'_'+(remotePull._n=(remotePull._n||0)+1);
+    let done=false; const s=document.createElement('script');
+    function cleanup(){try{delete window[cb];}catch(e){window[cb]=undefined;} if(s.parentNode)s.parentNode.removeChild(s);}
+    window[cb]=function(data){done=true;cleanup(); if(data&&data.error){reject(new Error(data.error));return;} resolve((data&&data.records)||[]);};
+    s.onerror=function(){if(!done){cleanup();reject(new Error('network'));}};
+    s.src=c.url+(c.url.indexOf('?')<0?'?':'&')+'action=list&key='+encodeURIComponent(c.key)+'&callback='+cb;
+    document.body.appendChild(s);
+    setTimeout(()=>{if(!done){cleanup();reject(new Error('timeout'));}},12000);});}
+  function remotePush(rec){const c=syncCfg(); if(!c.url||!rec)return; try{fetch(c.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'upsert',key:c.key,record:rec})}).catch(()=>{});}catch(e){}}
+  function remoteDelete(id){const c=syncCfg(); if(!c.url||!id)return; try{fetch(c.url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'delete',key:c.key,id:id})}).catch(()=>{});}catch(e){}}
+  function mergeById(remote,local){const m={}; (remote||[]).forEach(x=>{if(x&&x.id)m[x.id]=x;}); (local||[]).forEach(x=>{if(x&&x.id){const e=m[x.id]; if(!e||((x.savedAt||'')>(e.savedAt||'')))m[x.id]=x;}}); return Object.values(m).sort((p,q)=>(q.savedAt||'').localeCompare(p.savedAt||''));}
+  async function syncPull(silent){const c=syncCfg(); if(!c.url){if(!silent)toast('Add your sync URL + key first'); return;}
+    syncStatus('Syncing…');
+    try{const remote=await remotePull(); const local=loadSaved(); const merged=mergeById(remote,local); persistSaved(merged);
+      const rset=new Set((remote||[]).map(x=>x.id)); merged.filter(x=>!rset.has(x.id)).forEach(x=>remotePush(x));
+      renderHistory(); syncStatus('Synced · '+merged.length+' calls · '+fmtWhen(new Date().toISOString()));
+    }catch(e){syncStatus('Sync failed ('+(e.message||'error')+') — working locally'); if(!silent)toast('Sync failed — check URL/key');}}
+
   (function initDownsold(){ const d=document.getElementById('cf_downsold'); if(d) d.checked=false; })();  // always start clean, ignore browser form-restore
   autoFill(); renderVerdict(); applyMode();
+  updateSyncBadge(); if(syncCfg().url) syncPull(true);
 </script>
 </body>
 </html>
