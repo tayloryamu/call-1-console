@@ -40,6 +40,11 @@
   .modetog button{background:transparent;border:0;color:var(--muted);font:inherit;font-size:12px;font-weight:700;padding:6px 13px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:.15s}
   .modetog button.on{background:var(--orange);color:#20130a}
   .modetog button:not(.on):hover{color:var(--ink)}
+  .stool{background:var(--panel2);border:1px solid var(--line);color:var(--ink);font:inherit;font-size:12px;padding:5px 10px;border-radius:7px;cursor:pointer;transition:.15s}
+  .stool:hover{border-color:var(--orange);color:var(--orange)}
+  #script-strategy.editing,#script-coaching.editing{outline:2px dashed var(--orange);outline-offset:4px;border-radius:8px;background:rgba(242,149,92,.04)}
+  #script-strategy.editing .card,#script-coaching.editing .card{cursor:text}
+  #scriptTools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:-2px 0 12px}
   .dsbanner{display:flex;align-items:center;gap:8px;background:#2a1e10;border:1px solid #e0862b;color:#e6b93f;border-radius:8px;padding:8px 12px;margin:2px 0 10px;font-size:12px;font-weight:700}
   .dsbanner .x{margin-left:auto;background:none;border:0;color:inherit;cursor:pointer;font-size:16px;line-height:1}
   .coachrow{margin:12px 0 2px;font-size:12px;font-weight:600;color:var(--muted)}
@@ -176,6 +181,12 @@
   <!-- ============ LEFT: SCRIPT ============ -->
   <div class="col">
     <h2 id="scriptHead">The Script · <span style="color:var(--orange)">orange</span> = what you say · <span style="color:var(--green)">green</span> = optional</h2>
+    <div id="scriptTools">
+      <button type="button" class="stool" id="editScriptBtn" onclick="toggleScriptEdit()">✎ Edit script</button>
+      <button type="button" class="stool hidden" id="resetScriptBtn" onclick="resetScript()">Reset this section</button>
+      <button type="button" class="stool" id="dlConsoleBtn" onclick="exportConsole()">⬇ Download my copy</button>
+      <span id="scriptEditHint" class="hidden" style="font-size:12px;color:var(--muted)">Click any line and type. Saves to this browser automatically.</span>
+    </div>
 
     <div id="script-strategy">
     <div class="card">
@@ -1061,9 +1072,46 @@
       renderHistory(); syncStatus('Synced · '+merged.length+' calls · '+fmtWhen(new Date().toISOString()));
     }catch(e){syncStatus('Sync failed ('+(e.message||'error')+') — working locally'); if(!silent)toast('Sync failed — check URL/key');}}
 
+  /* ---------- editable script (edit your teleprompter inside the console) ---------- */
+  let SCRIPT_EDITING=false;
+  const SCRIPT_KEYS={strategy:'yamu_script_strategy',coaching:'yamu_script_coaching'};
+  const DEFAULT_SCRIPTS={};
+  function scriptEl(m){return document.getElementById('script-'+m);}
+  function captureDefaultScripts(){['strategy','coaching'].forEach(m=>{const el=scriptEl(m);if(el&&!(m in DEFAULT_SCRIPTS))DEFAULT_SCRIPTS[m]=el.innerHTML;});}
+  function loadSavedScripts(){['strategy','coaching'].forEach(m=>{try{const s=localStorage.getItem(SCRIPT_KEYS[m]);if(s!=null&&scriptEl(m))scriptEl(m).innerHTML=s;}catch(e){}});}
+  function saveScripts(){['strategy','coaching'].forEach(m=>{const el=scriptEl(m);if(el){try{localStorage.setItem(SCRIPT_KEYS[m],el.innerHTML);}catch(e){}}});}
+  let _scriptSaveT=null; function scheduleSaveScripts(){clearTimeout(_scriptSaveT);_scriptSaveT=setTimeout(saveScripts,500);}
+  function toggleScriptEdit(){
+    SCRIPT_EDITING=!SCRIPT_EDITING;
+    ['strategy','coaching'].forEach(m=>{const el=scriptEl(m);if(!el)return;el.contentEditable=SCRIPT_EDITING?'true':'false';el.classList.toggle('editing',SCRIPT_EDITING);});
+    document.getElementById('editScriptBtn').textContent=SCRIPT_EDITING?'✓ Done editing':'✎ Edit script';
+    document.getElementById('resetScriptBtn').classList.toggle('hidden',!SCRIPT_EDITING);
+    document.getElementById('scriptEditHint').classList.toggle('hidden',!SCRIPT_EDITING);
+    if(!SCRIPT_EDITING){saveScripts();toast('Script saved to this browser');}
+  }
+  function resetScript(){const m=MODE;const label=m==='coaching'?'Coaching':'Strategy';
+    if(!confirm('Reset the '+label+' script back to the original? Your edits to it will be lost.'))return;
+    scriptEl(m).innerHTML=DEFAULT_SCRIPTS[m]||'';try{localStorage.removeItem(SCRIPT_KEYS[m]);}catch(e){}
+    if(SCRIPT_EDITING){scriptEl(m).contentEditable='true';scriptEl(m).classList.add('editing');}
+    toast('Reset '+label+' script');
+  }
+  function exportConsole(){
+    if(SCRIPT_EDITING)toggleScriptEdit();   // turn off edit mode + save first
+    const clone=document.documentElement.cloneNode(true);
+    clone.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
+    clone.querySelectorAll('.editing').forEach(e=>e.classList.remove('editing'));
+    clone.querySelectorAll('.drawer.open,.drawer-bg.open').forEach(e=>e.classList.remove('open'));
+    const html='<!doctype html>\n'+clone.outerHTML;
+    const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='YAMU_Call1_Console.html';a.click();
+    toast('Downloaded your copy');
+  }
+
   (function initDownsold(){ const d=document.getElementById('cf_downsold'); if(d) d.checked=false; })();  // always start clean, ignore browser form-restore
+  captureDefaultScripts(); loadSavedScripts();
   autoFill(); renderVerdict(); applyMode();
   updateSyncBadge(); if(syncCfg().url) syncPull(true);
+  ['strategy','coaching'].forEach(m=>{const el=scriptEl(m);if(el)el.addEventListener('input',scheduleSaveScripts);});
 </script>
 </body>
 </html>
