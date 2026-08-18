@@ -633,7 +633,6 @@
 <div class="actions">
   <button class="btn" onclick="saveCall()">Save call</button>
   <button class="btn ghost" onclick="openHistory()">History ▾</button>
-  <button class="btn alt" onclick="copySummary()">Copy for GHL note</button>
   <button class="btn alt" onclick="downloadSummary()">Download</button>
   <button class="btn gng" onclick="runGoNoGo()">Go / No-Go ▸</button>
   <button class="btn warn" onclick="if(confirm('Clear all fields for a new call?'))resetAll()">New call</button>
@@ -1105,7 +1104,6 @@
     return L.join("\n");
   }
   function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
-  function copySummary(){navigator.clipboard.writeText(buildSummary()).then(()=>toast('Summary copied, paste into the GHL contact note')).catch(()=>{const ta=document.createElement('textarea');ta.value=buildSummary();document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Summary copied');});}
   function downloadSummary(){const name=(val('p_name')||'call').replace(/[^a-z0-9]+/gi,'_');const blob=new Blob([buildSummary()],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='YAMU_Call1_'+name+'.txt';a.click();toast('Downloaded');}
   function runGoNoGo(){
     const name=val('p_name').trim(), co=val('p_co').trim(), email=val('p_email').trim(), fathom=val('p_fathom').trim();
