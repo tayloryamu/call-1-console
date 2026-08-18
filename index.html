@@ -114,6 +114,22 @@
   .verdict .trace{font-size:12.5px;margin-top:10px;line-height:1.75;opacity:.95;border-top:1px solid rgba(255,255,255,.12);padding-top:8px}
   .verdict .caution{font-size:12.5px;margin-top:9px;color:#ffd27a;font-weight:600}
   .verdict .script{margin-top:10px;font-size:13px;padding:9px 11px;border-radius:7px;background:rgba(0,0,0,.3)}
+  /* prospect-fit scorecard */
+  .pc{border-top:1px solid rgba(255,255,255,.08);padding:9px 0}
+  .pc:first-of-type{border-top:0}
+  .pc .lab{font-size:12.5px;font-weight:700;color:var(--ink)}
+  .pc .lab .n{color:var(--muted);font-weight:800;margin-right:6px}
+  .pc .bar{font-size:11.5px;color:var(--muted);margin:2px 0 6px;line-height:1.5}
+  .pc .caution{font-size:11px;color:#ffd27a;margin-top:5px}
+  .seg{display:flex;gap:6px}
+  .seg label{flex:1;text-align:center;font-size:11px;font-weight:700;padding:5px 4px;border:1px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;color:var(--muted);user-select:none;transition:.12s}
+  .seg input{position:absolute;opacity:0;pointer-events:none}
+  .seg label.pass.on{background:rgba(79,214,160,.18);border-color:var(--green);color:#bff3dd}
+  .seg label.bord.on{background:rgba(230,172,82,.2);border-color:var(--amber);color:#f3e2ad}
+  .seg label.no.on{background:rgba(240,138,138,.18);border-color:var(--red);color:#f4c8c8}
+  .demoted{opacity:.7}
+  .demoted:hover,.demoted:focus-within{opacity:1;transition:opacity .2s}
+  .secbadge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--muted);border:1px solid rgba(255,255,255,.18);border-radius:5px;padding:1px 6px;margin-left:8px;vertical-align:middle;text-transform:uppercase}
   .v-green{background:var(--green-bg);border-color:var(--green-bd);color:var(--green)}
   .v-teal{background:var(--teal-bg);border-color:var(--teal-bd);color:var(--teal)}
   .v-blue{background:var(--blue-bg);border-color:var(--blue-bd);color:var(--blue)}
@@ -418,11 +434,96 @@
       <textarea class="f" id="notes" style="min-height:70px" placeholder="Anything that colors the decision"></textarea>
     </div>
 
-    <!-- ============ DECISION ENGINE ============ -->
-    <div class="card engine" id="engineCard">
+    <!-- ============ PROSPECT FIT SCORECARD (strategy only) ============ -->
+    <div class="card engine" id="engineProspect">
       <div class="inputs">
-        <h3>⚑ Decision engine</h3>
-        <div class="note">Set the inputs below. It applies the script's rules: spend thresholds, hard model blockers, escalate-don't-auto-reject, and affordability, then returns the call with its reasoning.</div>
+        <h3>⚑ Prospect fit <span class="secbadge">target customer</span></h3>
+        <div class="note">The 7 criteria we now qualify against. Mark each as you hear it. This is the lead read; the ad-spend engine below is a secondary reference.</div>
+
+        <div class="pc">
+          <div class="lab"><span class="n">1</span>Business model</div>
+          <div class="bar">Human experience, physical product, or marketplace.</div>
+          <div class="seg" data-pc="1">
+            <label class="pass"><input type="radio" name="pc1" value="pass">Pass</label>
+            <label class="bord"><input type="radio" name="pc1" value="bord">Border</label>
+            <label class="no"><input type="radio" name="pc1" value="no">No</label>
+          </div>
+        </div>
+
+        <div class="pc">
+          <div class="lab"><span class="n">2</span>Traction</div>
+          <div class="bar">$1M+ only if we can acquire them. $5-10M+ if we can't -- the 1%/10% model only pays out at that size.</div>
+          <div class="seg" data-pc="2">
+            <label class="pass"><input type="radio" name="pc2" value="pass">Pass</label>
+            <label class="bord"><input type="radio" name="pc2" value="bord">Border</label>
+            <label class="no"><input type="radio" name="pc2" value="no">No</label>
+          </div>
+        </div>
+
+        <div class="pc">
+          <div class="lab"><span class="n">3</span>45-day lift</div>
+          <div class="bar">Can we name a specific thing that creates a lift in 45 days? Benchmark: ~100% (double).</div>
+          <div class="seg" data-pc="3">
+            <label class="pass"><input type="radio" name="pc3" value="pass">Pass</label>
+            <label class="bord"><input type="radio" name="pc3" value="bord">Border</label>
+            <label class="no"><input type="radio" name="pc3" value="no">No</label>
+          </div>
+          <div class="caution">Benchmark still under discussion.</div>
+        </div>
+
+        <div class="pc">
+          <div class="lab"><span class="n">4</span>Moat</div>
+          <div class="bar">One of: research/science, taste, captive audience, or a unique mechanism (supply chain, delivery, experience).</div>
+          <div class="seg" data-pc="4">
+            <label class="pass"><input type="radio" name="pc4" value="pass">Pass</label>
+            <label class="bord"><input type="radio" name="pc4" value="bord">Border</label>
+            <label class="no"><input type="radio" name="pc4" value="no">No</label>
+          </div>
+        </div>
+
+        <div class="pc">
+          <div class="lab"><span class="n">5</span>Market dynamics</div>
+          <div class="bar">Growing market (weighted heaviest) plus healthy competitor volume.</div>
+          <div class="seg" data-pc="5">
+            <label class="pass"><input type="radio" name="pc5" value="pass">Pass</label>
+            <label class="bord"><input type="radio" name="pc5" value="bord">Border</label>
+            <label class="no"><input type="radio" name="pc5" value="no">No</label>
+          </div>
+        </div>
+
+        <div class="pc">
+          <div class="lab"><span class="n">6</span>Seller mindset</div>
+          <div class="bar">Raising their multiple ahead of an exit, or on the downswing and founder/family-led.</div>
+          <div class="seg" data-pc="6">
+            <label class="pass"><input type="radio" name="pc6" value="pass">Pass</label>
+            <label class="bord"><input type="radio" name="pc6" value="bord">Border</label>
+            <label class="no"><input type="radio" name="pc6" value="no">No</label>
+          </div>
+          <div class="caution">Not yet validated as a filter.</div>
+        </div>
+
+        <div class="pc">
+          <div class="lab"><span class="n">7</span>Pay + speed</div>
+          <div class="bar">Under $5M, equity is on the table. Above, 1%/10% works. Checks the boxes but broke and slow = no.</div>
+          <div class="seg" data-pc="7">
+            <label class="pass"><input type="radio" name="pc7" value="pass">Pass</label>
+            <label class="bord"><input type="radio" name="pc7" value="bord">Border</label>
+            <label class="no"><input type="radio" name="pc7" value="no">No</label>
+          </div>
+        </div>
+      </div>
+
+      <div id="prospectVerdict" class="verdict v-grey">
+        <div class="tag">Mark the criteria to get the fit read</div>
+        <div class="why"></div>
+      </div>
+    </div>
+
+    <!-- ============ DECISION ENGINE ============ -->
+    <div class="card engine demoted" id="engineCard">
+      <div class="inputs">
+        <h3>⚑ Ad-spend read <span class="secbadge">secondary</span></h3>
+        <div class="note">Reference only for the old performance model (spend thresholds, blockers, affordability). Prospect fit above is the call. Use this when spend actually matters.</div>
 
         <div class="metric" id="gpMetric">
           <div class="mval" id="gpVal">—</div>
@@ -748,6 +849,7 @@
     const c=MODE==='coaching';
     document.getElementById('script-strategy').classList.toggle('hidden',c);
     document.getElementById('script-coaching').classList.toggle('hidden',!c);
+    document.getElementById('engineProspect').classList.toggle('hidden',c);
     document.getElementById('engineCard').classList.toggle('hidden',c);
     document.getElementById('engineCoach').classList.toggle('hidden',!c);
     document.querySelectorAll('#modeTog button').forEach(b=>b.classList.toggle('on',b.dataset.mode===MODE));
@@ -755,7 +857,7 @@
     document.getElementById('scriptHead').innerHTML=c
       ?'Coaching script · <span style="color:var(--orange)">orange</span> = say · <span style="color:#7fb4ff">blue</span> = mental note · <span style="color:var(--green)">green</span> = sometimes'
       :'The Script · <span style="color:var(--orange)">orange</span> = what you say · <span style="color:var(--green)">green</span> = optional';
-    renderCoach();
+    renderCoach(); renderProspect();
   }
   function inferPmfFromSources(){
     if(document.querySelector('input[name=cf_pmf]:checked')) return;   // never override a manual pick
@@ -764,6 +866,52 @@
     if(/\bcold\b/.test(s)) v='cold';
     else if(/warm|referr|network|word of mouth|friends|family/.test(s)) v='warm';
     if(v){ const r=document.querySelector('input[name=cf_pmf][value="'+v+'"]'); if(r) r.checked=true; }
+  }
+  /* ---------- prospect fit scorecard (strategy) ---------- */
+  const PC=[
+    {k:'pc1',n:1,name:'Business model'},
+    {k:'pc2',n:2,name:'Traction'},
+    {k:'pc3',n:3,name:'45-day lift'},
+    {k:'pc4',n:4,name:'Moat'},
+    {k:'pc5',n:5,name:'Market dynamics'},
+    {k:'pc6',n:6,name:'Seller mindset'},
+    {k:'pc7',n:7,name:'Pay + speed'}
+  ];
+  function pcGet(k){const el=document.querySelector('input[name='+k+']:checked');return el?el.value:null;}
+  function prospectState(){
+    const s={pass:[],bord:[],no:[],un:[]};
+    PC.forEach(c=>{const v=pcGet(c.k); if(v==='pass')s.pass.push(c);else if(v==='bord')s.bord.push(c);else if(v==='no')s.no.push(c);else s.un.push(c);});
+    return s;
+  }
+  function renderProspect(){
+    document.querySelectorAll('#engineProspect .seg').forEach(seg=>seg.querySelectorAll('label').forEach(l=>l.classList.toggle('on',l.querySelector('input').checked)));
+    const box=document.getElementById('prospectVerdict'), eng=document.getElementById('engineProspect'); if(!box) return;
+    const s=prospectState();
+    const nm=a=>a.map(c=>c.n+' '+c.name).join(', ');
+    if(s.pass.length+s.bord.length+s.no.length===0){ box.className='verdict v-grey'; setBorder(eng,'v-grey'); box.innerHTML='<div class="tag">Mark the criteria to get the fit read</div><div class="why"></div>'; return; }
+    const hardNo=s.no.filter(c=>c.k==='pc1'||c.k==='pc7');   // business model or pay+speed = disqualify
+    const marketNo=s.no.some(c=>c.k==='pc5');
+    let cls,tag,why;
+    if(hardNo.length){
+      cls='v-red'; tag='⛔ Likely pass'; why='Fails a gating criterion ('+nm(hardNo)+'). Business model and pay + speed are non-negotiable, checks the boxes but broke and slow is still a no. Flag a partner only if there is real upside.';
+    } else if(marketNo){
+      cls='v-amber'; tag='⚑ Weak fit · market flag'; why='Market dynamics is a No, and that is weighted above almost everything. Hard to justify a shrinking market even if the rest looks good.';
+    } else if(s.pass.length===7){
+      cls='v-green'; tag='✅ Strong fit'; why='All seven criteria clear the bar. This is squarely the target customer.';
+    } else if(s.no.length===0 && s.un.length===0){
+      cls='v-teal'; tag='✅ Fit · pursue'; why='No blockers. '+s.pass.length+'/7 pass, '+s.bord.length+' borderline. Worth an audit, close the borderline items.';
+    } else if(s.no.length===0){
+      cls='v-teal'; tag='➜ Trending fit'; why=s.pass.length+'/7 pass, '+s.bord.length+' borderline, '+s.un.length+' still open. No blockers so far, keep qualifying.';
+    } else {
+      cls='v-amber'; tag='⚑ Mixed · pursue with care'; why='No hard blocker, but '+s.no.length+' criteria are a No ('+nm(s.no)+'). Get a partner read before committing.';
+    }
+    const trace=[];
+    if(s.pass.length) trace.push('Pass: '+nm(s.pass));
+    if(s.bord.length) trace.push('Borderline: '+nm(s.bord));
+    if(s.no.length) trace.push('No: '+nm(s.no));
+    if(s.un.length) trace.push('Open: '+nm(s.un));
+    box.className='verdict '+cls; setBorder(eng,cls);
+    box.innerHTML='<div class="tag">'+tag+'</div><div class="why">'+why+'</div>'+(trace.length?'<div class="trace">'+trace.map(x=>'• '+x).join('<br>')+'</div>':'');
   }
   function setMode(m,userAction){
     // downsell is a manual flag now — the rep ticks the box only when it truly was a downsell.
@@ -921,15 +1069,24 @@
       if(document.getElementById('cf_loved').checked) L.push("Product love: yes (reviews/repeat/referrals)");
       if(document.getElementById('cf_like').checked) L.push("Rep read: likes them / cohort fit");
     } else {
+      const s=prospectState(); const nm=a=>a.map(c=>c.n+' '+c.name).join(', ');
+      const pv=document.querySelector('#prospectVerdict .tag');
+      L.push("PROSPECT FIT: "+(pv?pv.textContent.replace(/[^\x00-\x7F]/g,'').trim():"(not marked)"));
+      if(s.pass.length) L.push("  Pass: "+nm(s.pass));
+      if(s.bord.length) L.push("  Borderline: "+nm(s.bord));
+      if(s.no.length) L.push("  No: "+nm(s.no));
+      if(s.un.length) L.push("  Open: "+nm(s.un));
       const q=currentQ(); const blk=blockersList(); const trg=triggersList();
-      let v = blk.length ? MODEL(blk) : (q ? ((q==="3"&&trg.length)?ESC:VERDICTS[q]) : null);
-      L.push("VERDICT: "+(v?v.tag.replace(/[^\x00-\x7F]/g,'').trim():"(no ad spend answer)"));
-      if(v) L.push("Reason: "+v.why);
-      if(blk.length) L.push("Model blockers: "+blk.join("; "));
-      if(q) L.push("Ad spend: "+ELIG[q]);
-      if(trg.length) L.push("Escalation signals: "+trg.join(", "));
-      if(val('tc')) L.push("Affordability (trial close): "+opt[val('tc')]);
-      if(val('scale')) L.push("Scalability: "+opt[val('scale')]);
+      if(q||blk.length||val('tc')||val('scale')){
+        let v = blk.length ? MODEL(blk) : (q ? ((q==="3"&&trg.length)?ESC:VERDICTS[q]) : null);
+        L.push("");
+        L.push("AD-SPEND READ (secondary): "+(v?v.tag.replace(/[^\x00-\x7F]/g,'').trim():"(no ad spend answer)"));
+        if(blk.length) L.push("  Model blockers: "+blk.join("; "));
+        if(q) L.push("  Ad spend: "+ELIG[q]);
+        if(trg.length) L.push("  Escalation signals: "+trg.join(", "));
+        if(val('tc')) L.push("  Affordability (trial close): "+opt[val('tc')]);
+        if(val('scale')) L.push("  Scalability: "+opt[val('scale')]);
+      }
     }
     L.push("");
     L.push("BUSINESS: yrs "+val('m_age')+" | mo rev "+val('m_mrev')+" | annual "+val('m_arev')+" | AOV "+val('m_aov')+" | margin "+val('m_margin')+" | LTV "+val('m_ltv')+" | CAC "+val('m_cac')+" | ROAS "+val('m_roas')+" | seasonality "+val('m_season')+" | sources "+val('m_src'));
@@ -963,7 +1120,7 @@
     });
     let vt,vc;
     if(MODE==='coaching'){ const cv=document.querySelector('#coachVerdict .tag'); vt=cv?cv.textContent:'Coaching call'; vc=(document.getElementById('coachVerdict').className.match(/v-[a-z]+/)||['v-grey'])[0]; }
-    else { const q=currentQ(),blk=blockersList(),trg=triggersList(); const v=blk.length?MODEL(blk):(q?((q==="3"&&trg.length)?ESC:VERDICTS[q]):{cls:'v-grey',tag:'No verdict yet'}); vt=v.tag; vc=v.cls; }
+    else { const pv=document.querySelector('#prospectVerdict .tag'); vt=(pv&&pv.textContent.trim())?pv.textContent:'No verdict yet'; vc=(document.getElementById('prospectVerdict').className.match(/v-[a-z]+/)||['v-grey'])[0]; }
     const dn=document.getElementById('cf_downsold')&&document.getElementById('cf_downsold').checked;
     return {fields:f, auto:Object.assign({},AUTO), mode:MODE, downsold:!!dn,
       name:val('p_name')||'(no name)', company:val('p_co'), email:val('p_email'),
@@ -1112,6 +1269,7 @@
   autoFill(); renderVerdict(); applyMode();
   updateSyncBadge(); if(syncCfg().url) syncPull(true);
   ['strategy','coaching'].forEach(m=>{const el=scriptEl(m);if(el)el.addEventListener('input',scheduleSaveScripts);});
+  document.getElementById('engineProspect').addEventListener('change',renderProspect);
 </script>
 </body>
 </html>
