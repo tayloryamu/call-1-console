@@ -153,6 +153,10 @@
   button.btn.ghost:hover{border-color:var(--orange);color:var(--orange);box-shadow:none}
   button.btn.gng{background:var(--teal);color:#04252b;border:0}
   button.btn.gng:hover{filter:brightness(1.08);box-shadow:0 3px 12px -4px var(--teal)}
+  #dictBtn{padding:6px 12px;font-size:12px}
+  #dictBtn.rec{background:var(--red);color:#fff;border-color:var(--red);animation:dictpulse 1.4s ease-in-out infinite}
+  @keyframes dictpulse{0%,100%{box-shadow:0 0 0 0 rgba(240,138,138,.5)}50%{box-shadow:0 0 0 5px rgba(240,138,138,0)}}
+  #dictStatus{background:#1b2c3d;border-radius:20px;padding:4px 12px;font-size:12px;color:var(--teal);white-space:nowrap}
   .drawer-bg{position:fixed;inset:0;background:rgba(4,9,14,.62);z-index:50;display:none}
   .drawer-bg.open{display:block}
   .drawer{position:fixed;top:0;right:0;height:100vh;width:min(460px,94vw);background:var(--card);border-left:1px solid var(--line);z-index:51;transform:translateX(100%);transition:transform .22s ease;display:flex;flex-direction:column}
@@ -194,6 +198,8 @@
     <button type="button" data-mode="coaching" onclick="setMode('coaching',true)">Coaching Program</button>
   </span>
   <span class="pill" id="modePill">Qualify, don't sell · Disqualify fast · Book the audit</span>
+  <button type="button" class="btn ghost" id="dictBtn" onclick="toggleDictation()" title="Voice dictation: click a field, then say the value. Chrome only.">🎤 Listen</button>
+  <span id="dictStatus" class="hidden"></span>
 </header>
 
 <div class="wrap">
@@ -1271,6 +1277,7 @@
   }
   function exportConsole(){
     if(SCRIPT_EDITING)toggleScriptEdit();   // turn off edit mode + save first
+    if(dictListening)stopDictation();        // don't bake a live-listening state into the copy
     const clone=document.documentElement.cloneNode(true);
     clone.querySelectorAll('[contenteditable]').forEach(e=>e.removeAttribute('contenteditable'));
     clone.querySelectorAll('.editing').forEach(e=>e.classList.remove('editing'));
@@ -1280,6 +1287,85 @@
     a.href=URL.createObjectURL(blob);a.download='YAMU_Call1_Console.html';a.click();
     toast('Downloaded your copy');
   }
+
+  /* ---------- live voice dictation (Route 1: free, mic-only, Web Speech API) ---------- */
+  let recog=null, dictListening=false, dictTarget=null;
+  const MONEY_IDS=new Set(['m_mrev','m_arev','m_aov','m_cac','m_ltv','mk_meta','mk_google','mk_other','mk_total','b_acv']);
+  function dictSupported(){ return ('webkitSpeechRecognition' in window)||('SpeechRecognition' in window); }
+  function fieldLabel(el){ if(!el) return ''; if(el.placeholder) return el.placeholder;
+    let p=el.previousElementSibling; while(p){ if(p.classList&&(p.classList.contains('ask')||p.tagName==='LABEL')) return p.textContent.trim().replace(/\s+/g,' ').slice(0,42); p=p.previousElementSibling; }
+    return el.id||'field'; }
+  const NUM={zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90};
+  const SCALE={thousand:1000,k:1000,grand:1000,million:1e6,mil:1e6,m:1e6};
+  function wordsToNumber(str){
+    const tokens=str.split(/\s+/).filter(Boolean); if(!tokens.length) return null;
+    let total=0,current=0,sawAny=false;
+    for(const tk of tokens){
+      if(/^\d+(?:\.\d+)?$/.test(tk)){ current+=parseFloat(tk); sawAny=true; continue; }
+      if(tk in NUM){ current+=NUM[tk]; sawAny=true; continue; }
+      if(tk==='hundred'){ current=(current||1)*100; sawAny=true; continue; }
+      if(tk in SCALE){ current=(current||1)*SCALE[tk]; total+=current; current=0; sawAny=true; continue; }
+      return {value:total+current, consumedAll:false, sawAny};       // hit a non-number word
+    }
+    return sawAny?{value:total+current, consumedAll:true, sawAny:true}:null;
+  }
+  function fmtNum(v){
+    if(v>=1e6 && v%1e5===0){ const x=v/1e6; return (Number.isInteger(x)?x:x.toFixed(1))+'M'; }
+    if(v>=1000 && v%100===0){ const x=v/1000; return (Number.isInteger(x)?x:x.toFixed(1))+'k'; }
+    return String(v);
+  }
+  function normalizeSpoken(raw, el){
+    const s=raw.trim().replace(/\s+/g,' ').replace(/[.,!?;]+$/,'');
+    const id=el.id||'';
+    const lower=s.toLowerCase();
+    const isPct=/\b(percent|percentage)\b|%/.test(lower);
+    const core=lower.replace(/\b(dollars?|bucks?|usd|percent|percentage|a|per|month|monthly|year|yearly|annually|annual|each|about|around|roughly|approximately|is|of|it's|its)\b/g,' ').replace(/[%$]/g,' ').replace(/\s+/g,' ').trim();
+    const n=wordsToNumber(core);
+    if(n && n.consumedAll){
+      const out=fmtNum(n.value);
+      if(isPct) return out+'%';
+      if(MONEY_IDS.has(id)) return '$'+out;
+      return out;
+    }
+    // not a clean number phrase -> light cleanup, keep the words (descriptive fields)
+    let t=s.replace(/\bmillions?\b/gi,'M').replace(/\bthousand\b/gi,'k').replace(/\bgrand\b/gi,'k')
+          .replace(/(\d)\s+(k|M)\b/g,'$1$2').replace(/(\d),(?=\d{3}\b)/g,'$1');
+    if(isPct) t=t.replace(/\bpercent(age)?\b/gi,'%').replace(/(\d)\s+%/g,'$1%');
+    if(/\d/.test(t)&&MONEY_IDS.has(id)&&!/^\$/.test(t)) t='$'+t;
+    return t;
+  }
+  function updateDictUI(msg){
+    const b=document.getElementById('dictBtn'), st=document.getElementById('dictStatus');
+    if(b){ b.classList.toggle('rec',dictListening); b.textContent=dictListening?'● Listening':'🎤 Listen'; }
+    if(st){ st.classList.toggle('hidden',!dictListening); if(dictListening) st.textContent=msg||(dictTarget?('→ '+fieldLabel(dictTarget)):'→ click a field, then speak'); }
+  }
+  function onDictResult(e){
+    let txt=''; for(let i=e.resultIndex;i<e.results.length;i++){ if(e.results[i].isFinal) txt+=e.results[i][0].transcript; }
+    txt=txt.trim(); if(!txt) return;
+    if(!dictTarget||!document.body.contains(dictTarget)){ updateDictUI('→ click a field first, then speak'); return; }
+    dictTarget.value=normalizeSpoken(txt,dictTarget);
+    dictTarget.dispatchEvent(new Event('input',{bubbles:true}));
+    updateDictUI('✓ '+fieldLabel(dictTarget));
+  }
+  function startDictation(){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    recog=new SR(); recog.continuous=true; recog.interimResults=false; recog.lang='en-US';
+    recog.onresult=onDictResult;
+    recog.onerror=(e)=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ toast('Allow mic access to dictate'); stopDictation(); } };
+    recog.onend=()=>{ if(dictListening){ try{recog.start();}catch(e){} } };   // auto-restart through silence
+    try{ recog.start(); dictListening=true; }catch(e){ toast('Could not start the mic'); dictListening=false; }
+    updateDictUI();
+  }
+  function stopDictation(){ dictListening=false; if(recog){ try{recog.onend=null; recog.stop();}catch(e){} recog=null; } updateDictUI(); }
+  function toggleDictation(){
+    if(!dictSupported()){ toast('Voice dictation needs Chrome or Edge'); return; }
+    dictListening ? stopDictation() : startDictation();
+  }
+  document.addEventListener('focusin',(e)=>{ const el=e.target; if(!el||!el.tagName) return;
+    const ok=(el.tagName==='TEXTAREA')||(el.tagName==='INPUT'&&(!el.type||el.type==='text'));
+    if(!ok) return; if(['histSearch','syncUrl','syncKey'].includes(el.id)) return;
+    dictTarget=el; if(dictListening) updateDictUI();
+  });
 
   (function initDownsold(){ const d=document.getElementById('cf_downsold'); if(d) d.checked=false; })();  // always start clean, ignore browser form-restore
   captureDefaultScripts(); loadSavedScripts();
