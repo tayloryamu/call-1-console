@@ -122,8 +122,8 @@
   .pc .bar{font-size:11.5px;color:var(--muted);margin:2px 0 6px;line-height:1.5}
   .pc .caution{font-size:11px;color:#ffd27a;margin-top:5px}
   .seg{display:flex;gap:6px}
-  .seg label{flex:1;text-align:center;font-size:11px;font-weight:700;padding:5px 4px;border:1px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;color:var(--muted);user-select:none;transition:.12s}
-  .seg input{position:absolute;opacity:0;pointer-events:none}
+  .seg label{position:relative;flex:1;text-align:center;font-size:11px;font-weight:700;padding:5px 4px;border:1px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;color:var(--muted);user-select:none;transition:.12s}
+  .seg input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;pointer-events:none}
   .seg label.pass.on{background:rgba(79,214,160,.18);border-color:var(--green);color:#bff3dd}
   .seg label.bord.on{background:rgba(230,172,82,.2);border-color:var(--amber);color:#f3e2ad}
   .seg label.no.on{background:rgba(240,138,138,.18);border-color:var(--red);color:#f4c8c8}
@@ -1376,13 +1376,14 @@
   // clicking (or tabbing into) a field arms it for exactly one capture, then it disarms
   document.addEventListener('focusin',(e)=>{ if(isDictField(e.target)) armField(e.target); });
   document.addEventListener('click',(e)=>{ if(isDictField(e.target)) armField(e.target); });
+  // prospect-fit criteria: delegated so it attaches regardless of any later init error
+  document.addEventListener('change',(e)=>{ if(e.target&&/^pc[1-7]$/.test(e.target.name||'')) renderProspect(); });
 
   (function initDownsold(){ const d=document.getElementById('cf_downsold'); if(d) d.checked=false; })();  // always start clean, ignore browser form-restore
   captureDefaultScripts(); loadSavedScripts();
   autoFill(); renderVerdict(); applyMode();
   updateSyncBadge(); if(syncCfg().url) syncPull(true);
   ['strategy','coaching'].forEach(m=>{const el=scriptEl(m);if(el)el.addEventListener('input',scheduleSaveScripts);});
-  document.getElementById('engineProspect').addEventListener('change',renderProspect);
 </script>
 </body>
 </html>
