@@ -198,7 +198,7 @@
     <button type="button" data-mode="coaching" onclick="setMode('coaching',true)">Coaching Program</button>
   </span>
   <span class="pill" id="modePill">Qualify, don't sell · Disqualify fast · Book the audit</span>
-  <button type="button" class="btn ghost" id="dictBtn" onclick="toggleDictation()" title="Voice dictation: click a field, then say the value. Chrome only.">🎤 Listen</button>
+  <button type="button" class="btn ghost" id="dictBtn" onclick="toggleDictation()" title="Voice dictation (Chrome/Edge): click a field, say the value — it captures once, then waits for your next click. Number fields ignore anything without a number.">🎤 Listen</button>
   <span id="dictStatus" class="hidden"></span>
 </header>
 
@@ -1289,8 +1289,10 @@
   }
 
   /* ---------- live voice dictation (Route 1: free, mic-only, Web Speech API) ---------- */
-  let recog=null, dictListening=false, dictTarget=null;
+  let recog=null, dictListening=false, dictTarget=null, dictArmed=false;
   const MONEY_IDS=new Set(['m_mrev','m_arev','m_aov','m_cac','m_ltv','mk_meta','mk_google','mk_other','mk_total','b_acv']);
+  // fields where only a number should land — a phrase with no digit is ignored (stops ordinary talk leaking in)
+  const NUMERIC_IDS=new Set([...MONEY_IDS,'m_margin','m_roas','m_age','m_season','pr_repeat']);
   function dictSupported(){ return ('webkitSpeechRecognition' in window)||('SpeechRecognition' in window); }
   function fieldLabel(el){ if(!el) return ''; if(el.placeholder) return el.placeholder;
     let p=el.previousElementSibling; while(p){ if(p.classList&&(p.classList.contains('ask')||p.tagName==='LABEL')) return p.textContent.trim().replace(/\s+/g,' ').slice(0,42); p=p.previousElementSibling; }
@@ -1337,15 +1339,20 @@
   function updateDictUI(msg){
     const b=document.getElementById('dictBtn'), st=document.getElementById('dictStatus');
     if(b){ b.classList.toggle('rec',dictListening); b.textContent=dictListening?'● Listening':'🎤 Listen'; }
-    if(st){ st.classList.toggle('hidden',!dictListening); if(dictListening) st.textContent=msg||(dictTarget?('→ '+fieldLabel(dictTarget)):'→ click a field, then speak'); }
+    if(!st) return;
+    st.classList.toggle('hidden',!dictListening);
+    if(!dictListening) return;
+    st.textContent = msg || (dictArmed&&dictTarget ? ('◉ '+fieldLabel(dictTarget)+' — speak the value') : '→ click a field to capture');
   }
   function onDictResult(e){
     let txt=''; for(let i=e.resultIndex;i<e.results.length;i++){ if(e.results[i].isFinal) txt+=e.results[i][0].transcript; }
     txt=txt.trim(); if(!txt) return;
-    if(!dictTarget||!document.body.contains(dictTarget)){ updateDictUI('→ click a field first, then speak'); return; }
-    dictTarget.value=normalizeSpoken(txt,dictTarget);
-    dictTarget.dispatchEvent(new Event('input',{bubbles:true}));
-    updateDictUI('✓ '+fieldLabel(dictTarget));
+    // only fill when a field is deliberately armed (just clicked); otherwise drop the audio so ordinary talk can't leak in
+    if(!dictArmed||!dictTarget||!document.body.contains(dictTarget)){ updateDictUI('→ click a field to capture'); return; }
+    const v=normalizeSpoken(txt,dictTarget);
+    if(NUMERIC_IDS.has(dictTarget.id) && !/\d/.test(v)){ updateDictUI('◉ '+fieldLabel(dictTarget)+' — say a number'); return; }  // ignore chatter, stay armed
+    dictTarget.value=v; dictTarget.dispatchEvent(new Event('input',{bubbles:true}));
+    dictArmed=false; updateDictUI('✓ '+fieldLabel(dictTarget)+' — click the next field');
   }
   function startDictation(){
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1353,19 +1360,22 @@
     recog.onresult=onDictResult;
     recog.onerror=(e)=>{ if(e.error==='not-allowed'||e.error==='service-not-allowed'){ toast('Allow mic access to dictate'); stopDictation(); } };
     recog.onend=()=>{ if(dictListening){ try{recog.start();}catch(e){} } };   // auto-restart through silence
+    dictArmed=false;
     try{ recog.start(); dictListening=true; }catch(e){ toast('Could not start the mic'); dictListening=false; }
     updateDictUI();
   }
-  function stopDictation(){ dictListening=false; if(recog){ try{recog.onend=null; recog.stop();}catch(e){} recog=null; } updateDictUI(); }
+  function stopDictation(){ dictListening=false; dictArmed=false; if(recog){ try{recog.onend=null; recog.stop();}catch(e){} recog=null; } updateDictUI(); }
   function toggleDictation(){
     if(!dictSupported()){ toast('Voice dictation needs Chrome or Edge'); return; }
     dictListening ? stopDictation() : startDictation();
   }
-  document.addEventListener('focusin',(e)=>{ const el=e.target; if(!el||!el.tagName) return;
+  function isDictField(el){ if(!el||!el.tagName) return false;
     const ok=(el.tagName==='TEXTAREA')||(el.tagName==='INPUT'&&(!el.type||el.type==='text'));
-    if(!ok) return; if(['histSearch','syncUrl','syncKey'].includes(el.id)) return;
-    dictTarget=el; if(dictListening) updateDictUI();
-  });
+    return ok && !['histSearch','syncUrl','syncKey'].includes(el.id); }
+  function armField(el){ dictTarget=el; if(dictListening){ dictArmed=true; updateDictUI(); } }
+  // clicking (or tabbing into) a field arms it for exactly one capture, then it disarms
+  document.addEventListener('focusin',(e)=>{ if(isDictField(e.target)) armField(e.target); });
+  document.addEventListener('click',(e)=>{ if(isDictField(e.target)) armField(e.target); });
 
   (function initDownsold(){ const d=document.getElementById('cf_downsold'); if(d) d.checked=false; })();  // always start clean, ignore browser form-restore
   captureDefaultScripts(); loadSavedScripts();
