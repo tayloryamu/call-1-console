@@ -214,7 +214,7 @@
   <div class="col">
     <h2 id="scriptHead">The Script · <span style="color:var(--orange)">orange</span> = what you say · <span style="color:var(--green)">green</span> = optional</h2>
     <div id="scriptTools">
-      <button type="button" class="stool" id="editScriptBtn" onclick="toggleScriptEdit()">✎ Edit script</button>
+      <button type="button" class="stool hidden" id="editScriptBtn" onclick="toggleScriptEdit()">✎ Edit script</button>
       <button type="button" class="stool hidden" id="resetScriptBtn" onclick="resetScript()">Reset this section</button>
       <button type="button" class="stool" id="dlConsoleBtn" onclick="exportConsole()">⬇ Download my copy</button>
       <span id="scriptEditHint" class="hidden" style="font-size:12px;color:var(--muted)">Click any line and type. Saves to this browser automatically.</span>
@@ -1763,10 +1763,10 @@
   document.addEventListener('change',(e)=>{ if(e.target&&/^pc[1-7]$/.test(e.target.name||'')){ renderProspect(); renderGap(); renderPrice(); } });
 
   (function initDownsold(){ const d=document.getElementById('cf_downsold'); if(d) d.checked=false; })();  // always start clean, ignore browser form-restore
-  captureDefaultScripts(); loadSavedScripts();
+  captureDefaultScripts(); /* no saved script copies: updates must always show */
   autoFill(); renderVerdict(); applyMode();
   updateSyncBadge(); if(syncCfg().url) syncPull(true);
-  ['strategy','coaching'].forEach(m=>{const el=scriptEl(m);if(el)el.addEventListener('input',scheduleSaveScripts);});
+  
 </script>
 
 <script>
@@ -1789,7 +1789,8 @@
     try{ t?localStorage.setItem(RK,t):localStorage.removeItem(RK); }catch(e){}
     if(!t){ el.textContent=PROMPT; el.classList.add('ph'); }
   });
-  el.addEventListener('input',function(){
+  el.addEventListener('input',function(e){
+    e.stopPropagation();   // typing a story must never count as editing the script
     try{ localStorage.setItem(RK, el.textContent); }catch(e){}
   });
   window.resetRepStory=function(){
