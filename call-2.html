@@ -187,6 +187,21 @@
   .gapblock{border-left:3px solid var(--orange);padding:6px 0 4px 10px;margin:8px 0}
   .gaphead{font-weight:700;letter-spacing:.02em;margin-bottom:4px;color:var(--orange)}
   .gapline{font-size:15px;line-height:1.45;margin:6px 0}
+  /* 7a / 7b question lists and click-to-jump */
+  .qhead{margin:16px 0 6px;padding:6px 10px;border-left:3px solid var(--orange);font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+  .qhead small{font-weight:400;text-transform:none;letter-spacing:0;opacity:.7;margin-left:6px}
+  .qgroup{margin:12px 0 2px;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;opacity:.6}
+  .q{position:relative;cursor:pointer;border-radius:6px;padding-right:24px}
+  .q:hover{background:rgba(127,180,255,.08)}
+  .q::after{content:"↗";position:absolute;right:6px;top:3px;font-size:13px;color:#7fb4ff;opacity:0;transition:opacity .15s}
+  .q:hover::after,.q:focus-visible::after{opacity:.9}
+  .q:focus-visible{outline:2px solid #7fb4ff;outline-offset:2px}
+  .qn{display:inline-block;min-width:1.6em;font-weight:700;opacity:.5;font-variant-numeric:tabular-nums}
+  .jumpbtn{float:right;margin-left:8px;border:1px solid var(--line);background:transparent;color:inherit;opacity:.5;border-radius:6px;font-size:11px;font-weight:500;letter-spacing:.02em;text-transform:none;padding:1px 7px;cursor:pointer}
+  .jumpbtn:hover,.jumpbtn:focus-visible{opacity:1;border-color:#7fb4ff;color:#7fb4ff}
+  .jumpflash{animation:jumpflash 1.6s ease-out}
+  @keyframes jumpflash{0%{box-shadow:0 0 0 3px rgba(127,180,255,.9);background-color:rgba(127,180,255,.14)}100%{box-shadow:0 0 0 3px rgba(127,180,255,0);background-color:transparent}}
+  @media (prefers-reduced-motion:reduce){.jumpflash{animation:none;outline:2px solid #7fb4ff;outline-offset:2px}}
 </style>
 </head>
 <body>
@@ -227,7 +242,7 @@
     </div>
 
     <div class="card">
-      <div class="step">2 · WHO DECIDES · before anything else</div>
+      <div class="step"><button type="button" class="jumpbtn" data-jump='#q_nodecider' title="Show where this goes on the right">↗ answers</button>2 · WHO DECIDES · before anything else</div>
       <div class="say">"Before I get into it, is it just you on the decision, or is there a partner or anyone else who'd weigh in on something like this?"</div>
       <div class="note">If there is someone else:</div>
       <div class="mayb">"Got it. I'd rather not have you relay this secondhand, because it's a lot and I'd be doing the same thing in your position. Is there any chance they can join us now, even for ten minutes at the end? If not, let's book the next one with both of you and I'll keep today to your business rather than how we work."</div>
@@ -272,33 +287,48 @@
     </div>
 
     <div class="card">
-      <div class="step">7 · QUESTIONS · 6 to 10 min</div>
+      <div class="step"><button type="button" class="jumpbtn" data-jump='#m_age' title="Show where this goes on the right">↗ answers</button>7 · QUESTIONS · 6 to 10 min</div>
       <div class="say">"If you don't mind, I'll jump in and ask a number of key questions. Let me get through them, and if I missed anything you can fill the gaps at the end."</div>
-      <div class="note">Never ask "tell me about your business." Ask narrow. <b>Log the answers on the right. This call verifies what they put on the form.</b></div>
-      <div class="note"><b>Two you cannot skip now:</b> the trailing twelve month average monthly revenue (it sets the price) and current ad spend (it sets the floor).</div>
-      <div class="say">"What did you do in revenue last year, and what are you tracking to this year?"</div>
-      <div class="say">"What are you spending on ads at the moment? Who's running them?"</div>
-      <div class="gapblock">
-        <div class="gaphead">GAP &amp; PAIN · 3 to 4 min · <b>do not skip</b></div>
-        <div class="note">This is what makes the number land. Without it the fee is quoted against nothing. <b>Log all four in the Gap &amp; Pain panel on the right.</b></div>
-        <div class="note"><b>Q1 · Where they want to be</b></div>
-        <div class="say">"On the form you put [target revenue]. Walk me through that. Where do you want to be twelve months from now, and why that number?"</div>
-        <div class="mayb">Probe: "What changes for you personally when you hit it?"</div>
-        <div class="note"><b>Q2 · What's in the way</b></div>
-        <div class="say">"You said [#1 obstacle from the form]. If you had to pick one thing stopping you from getting there on your own, what is it?"</div>
-        <div class="mayb">Probe: "How long has that been the case?"</div>
-        <div class="note"><b>Q3 · What they've already tried</b></div>
-        <div class="say">"What have you tried to fix that? Agencies, freelancers, in-house, doing it yourself?"</div>
-        <div class="mayb">Probe: "What happened? Why didn't it work?"</div>
-        <div class="note"><b>Q4 · Cost of staying put</b></div>
-        <div class="say">"If nothing changes and you're at [current revenue] a year from now, what does that cost you?"</div>
-        <div class="mayb">Probe: "Roughly what's your margin?"</div>
-        <div class="note"><b>The margin is load-bearing now.</b> The profit gap is built on it. If you can't get a number, take a range ("somewhere between twenty and forty?") rather than skipping it.</div>
-        <div class="note" style="opacity:.8">Where these go next: Q2 is the audit's lead question. Q3 is what the audit must not recommend again. Q1 is what the financial model gets built toward. Call 2 opens by reading Q1, Q2 and Q4 back to them.</div>
-      </div>
-      <div class="note">When the complaint about a past agency comes, don't defend YAMU. Ask: "What do you think that was? What was actually going wrong there?" Then stop talking and write down their words.</div>
-      <div class="say">"What can you do that nobody else in your category can? Is it the product itself, the science behind it, an audience you've built, the way you make it or get it to people, or is it just better made than everything else out there?"</div>
-      <div class="note"><b>The moat question decides the track.</b> If the answer stays vague, push once: "If someone with the same budget wanted to copy that tomorrow, what would stop them?"</div>
+      <div class="note">Two parts, in this order: <b>7a, the business</b>, then <b>7b, what it means to them</b>. Ask them word for word, top to bottom. <b>Click any question to jump to where its answer goes on the right.</b> Never ask "tell me about your business." This call verifies what they put on the form.</div>
+
+      <div class="qhead">7a · The business <small>numbers first · about 4 min</small></div>
+      <div class="note"><b>Two you cannot skip:</b> twelve-month revenue (it sets the price) and ad spend (it sets the floor).</div>
+      <div class="qgroup">Revenue</div>
+      <div class="say q" data-jump='#m_age' tabindex="0" role="button"><span class="qn">1</span>"How long has the business been up and running?"</div>
+      <div class="say q" data-jump='#m_mrev' tabindex="0" role="button"><span class="qn">2</span>"What's your monthly revenue right now?"</div>
+      <div class="say q" data-jump='#q_ttm' tabindex="0" role="button"><span class="qn">3</span>"And over the last twelve months, roughly what did you do in revenue?"</div>
+      <div class="note">That one sets the price. It goes in the price panel as a monthly average: the twelve-month total divided by twelve.</div>
+      <div class="mayb q" data-jump='#m_season' tabindex="0" role="button"><span class="qn">+</span>If it's seasonal: "What's revenue outside of season?"</div>
+      <div class="qgroup">Unit economics</div>
+      <div class="say q" data-jump='#m_aov' tabindex="0" role="button"><span class="qn">4</span>"What's your average sale or order value?"</div>
+      <div class="say q" data-jump='#m_margin' tabindex="0" role="button"><span class="qn">5</span>"What's your gross margin on a typical sale?"</div>
+      <div class="note">The gap math in 7b is built on this. If they won't give a number, take a range: "somewhere between twenty and forty?"</div>
+      <div class="say q" data-jump='#m_ltv' tabindex="0" role="button"><span class="qn">6</span>"What's your LTV? If you don't have it, purchase frequency and retention?"</div>
+      <div class="say q" data-jump='#m_cac' tabindex="0" role="button"><span class="qn">7</span>"Rough sense of what it costs to acquire a customer?"</div>
+      <div class="say q" data-jump='#m_roas' tabindex="0" role="button"><span class="qn">8</span>"What's your current ROAS?"</div>
+      <div class="say q" data-jump='#m_src' tabindex="0" role="button"><span class="qn">9</span>"Where are your customers coming from now? Warm network, referrals, or cold sources?"</div>
+      <div class="qgroup">Marketing</div>
+      <div class="say q" data-jump='#mk_history' tabindex="0" role="button"><span class="qn">10</span>"Have you run paid ads before? Meta, Google? What's working and what's not?"</div>
+      <div class="say q" data-jump='#mk_meta' tabindex="0" role="button"><span class="qn">11</span>"What are you spending on ads a month, and how's it split across Meta, Google and anything else?"</div>
+      <div class="say q" data-jump='#mk_total' tabindex="0" role="button"><span class="qn">12</span>"What's your total marketing spend a month, including non-ad channels?"</div>
+      <div class="say q" data-jump='#mk_channel' tabindex="0" role="button"><span class="qn">13</span>"How do you sell? Direct to customer, or through retailers/wholesale?"</div>
+      <div class="say q" data-jump='#mk_email' tabindex="0" role="button"><span class="qn">14</span>"Do you do any email marketing? What platform?"</div>
+      <div class="say q" data-jump='#mk_creative' tabindex="0" role="button"><span class="qn">15</span>"Static or video ads?"</div>
+      <div class="qgroup">Ecommerce only</div>
+      <div class="say q" data-jump='#pr_best' tabindex="0" role="button"><span class="qn">16</span>"Which product sells best? What share of last month was it?"</div>
+      <div class="say q" data-jump='#pr_repeat' tabindex="0" role="button"><span class="qn">17</span>"What's your repeat purchase rate?"</div>
+      <div class="say q" data-jump='#pr_bundle' tabindex="0" role="button"><span class="qn">18</span>"Have you tested bundles? How many A buyers go on to buy B?"</div>
+      <div class="say q" data-jump='#pr_video' tabindex="0" role="button"><span class="qn">19</span>"If we hand you scripts and do the editing, can you produce a solid volume of video?"</div>
+      <div class="say q" data-jump='#pr_inv' tabindex="0" role="button"><span class="qn">20</span>"Any inventory or delivery limits if demand doubled?"</div>
+      <div class="qgroup">B2B only · ask these instead of 16 to 20</div>
+      <div class="say q" data-jump='#b_cycle' tabindex="0" role="button"><span class="qn">16</span>"What's your sales cycle?"</div>
+      <div class="say q" data-jump='#b_acv' tabindex="0" role="button"><span class="qn">17</span>"Contract value, single or multiple tiers?"</div>
+      <div class="say q" data-jump='#b_crm' tabindex="0" role="button"><span class="qn">18</span>"What CRM do you use?"</div>
+      <div class="say q" data-jump='#b_process' tabindex="0" role="button"><span class="qn">19</span>"What's your current sales process, and what does the sales team look like?"</div>
+      <div class="say q" data-jump='#b_proof' tabindex="0" role="button"><span class="qn">20</span>"Do you have case studies or testimonials?"</div>
+      <div class="qgroup">The moat · this decides the track</div>
+      <div class="say q" data-jump='[data-pc="4"]' tabindex="0" role="button"><span class="qn">21</span>"What can you do that nobody else in your category can? Is it the product itself, the science behind it, an audience you've built, the way you make it or get it to people, or is it just better made than everything else out there?"</div>
+      <div class="note">If the answer stays vague, push once: "If someone with the same budget wanted to copy that tomorrow, what would stop them?"</div>
       <table class="ref">
         <tr><th>If they say</th><th>Ask</th></tr>
         <tr><td>Research or science</td><td>"Is that patented, or published anywhere? Who else has it?"</td></tr>
@@ -306,12 +336,32 @@
         <tr><td>Mechanism</td><td>"How long did that take to build? Could someone buy their way to it?"</td></tr>
         <tr><td>Taste or craft</td><td>"What do customers say when they notice? Is it in the reviews?"</td></tr>
       </table>
-      <div class="say">"What made you start this? Where do you want it to go, are you building it to sell or to keep?"</div>
+
+      <div class="qhead">7b · What it means to them <small>gap &amp; pain · 3 to 4 min · do not skip</small></div>
+      <div class="note">This is what makes the number land. Without it the fee is quoted against nothing.</div>
+      <div class="qgroup">Q1 · Where they want to be</div>
+      <div class="say q" data-jump='#g_target' tabindex="0" role="button"><span class="qn">1</span>"On the form you put [target revenue]. Walk me through that. Where do you want to be twelve months from now, and why that number?"</div>
+      <div class="mayb q" data-jump='#g_why' tabindex="0" role="button"><span class="qn">+</span>Probe: "What changes for you personally when you hit it?"</div>
+      <div class="qgroup">Q2 · What's in the way</div>
+      <div class="say q" data-jump='#mk_challenge' tabindex="0" role="button"><span class="qn">2</span>"What's your biggest challenge right now finding new customers?"</div>
+      <div class="say q" data-jump='#g_constraint' tabindex="0" role="button"><span class="qn">3</span>"You said [#1 obstacle from the form]. If you had to pick one thing stopping you from getting there on your own, what is it?"</div>
+      <div class="mayb q" data-jump='#g_howlong' tabindex="0" role="button"><span class="qn">+</span>Probe: "How long has that been the case?"</div>
+      <div class="qgroup">Q3 · What they've already tried</div>
+      <div class="say q" data-jump='#g_tried' tabindex="0" role="button"><span class="qn">4</span>"What have you tried to fix that? Agencies, freelancers, in-house, doing it yourself?"</div>
+      <div class="mayb q" data-jump='#g_whyfailed' tabindex="0" role="button"><span class="qn">+</span>Probe: "What happened? Why didn't it work?"</div>
+      <div class="note">If an agency comes up, don't defend YAMU. Ask: "What do you think that was? What was actually going wrong there?" Then stop talking and write down their words.</div>
+      <div class="qgroup">Q4 · Cost of staying put</div>
+      <div class="say q" data-jump='#g_cost' tabindex="0" role="button"><span class="qn">5</span>"If nothing changes and you're at [current revenue] a year from now, what does that cost you?"</div>
+      <div class="mayb q" data-jump='#g_margin' tabindex="0" role="button"><span class="qn">+</span>Probe: "Roughly what's your margin?"</div>
+      <div class="note">Skip the margin probe if you got it at question 5 in 7a.</div>
+      <div class="qgroup">Where they're going</div>
+      <div class="say q" data-jump='[data-pc="6"]' tabindex="0" role="button"><span class="qn">6</span>"What made you start this? Where do you want it to go, are you building it to sell or to keep?"</div>
       <div class="note">Don't rush the founding story. Exit intent here is a signal for the Portfolio track.</div>
+      <div class="note" style="opacity:.8">Where 7b goes next: Q2 is the audit's lead question. Q3 is what the audit must not recommend again. Q1 is what the financial model gets built toward. Call 2 opens by reading Q1, Q2 and Q4 back to them.</div>
     </div>
 
     <div class="card">
-      <div class="step">8 · THE VERDICT · which track · set it on the right</div>
+      <div class="step"><button type="button" class="jumpbtn" data-jump='#engineProspect' title="Show where this goes on the right">↗ answers</button>8 · THE VERDICT · which track · set it on the right</div>
       <div class="note">By the end of the questions you are routing to one of three places. <b>Mark the criteria in Track routing and the console returns the track.</b></div>
       <table class="ref">
         <tr><th>Route</th><th>When</th></tr>
@@ -322,7 +372,7 @@
     </div>
 
     <div class="card">
-      <div class="step">8b · THE GAP, OUT LOUD · <b>before any number</b></div>
+      <div class="step"><button type="button" class="jumpbtn" data-jump='#gapVerdict' title="Show where this goes on the right">↗ answers</button>8b · THE GAP, OUT LOUD · <b>before any number</b></div>
       <div class="note"><b>Read the gap math off the Gap &amp; Pain panel, recap, get a yes. No number before the yes.</b> The panel writes the sentence for you once Q1 and the margin are in.</div>
       <div class="say">"So let me make sure I've got this right. You're at about [baseline] a month, you want to be at [target], that's a [revenue gap] a month gap, and at your margin that's roughly [profit gap] a month in profit you're not making."</div>
       <div class="say">"You said the thing in the way is [Q2], and it's been that way for [how long]. You've already tried [Q3], and it didn't work because [why]. And if nothing changes, [Q4]."</div>
@@ -331,7 +381,7 @@
     </div>
 
     <div class="card">
-      <div class="step">9 · THE MONEY · quote it live · <b>different formula per track</b></div>
+      <div class="step"><button type="button" class="jumpbtn" data-jump='#enginePrice' title="Show where this goes on the right">↗ answers</button>9 · THE MONEY · quote it live · <b>different formula per track</b></div>
       <div class="note"><b>The two tracks no longer price the same. Quote only the one you routed them to.</b> There is always a floor, so never imply we work for free until results. <b>Use the price quote panel on the right, read the number off it.</b></div>
       <table class="ref">
         <tr><th></th><th>Portfolio</th><th>Agency</th></tr>
@@ -353,7 +403,7 @@
     </div>
 
     <div class="card">
-      <div class="step">10 · IF PORTFOLIO · the guarantee</div>
+      <div class="step"><button type="button" class="jumpbtn" data-jump='#priceVerdict' title="Show where this goes on the right">↗ answers</button>10 · IF PORTFOLIO · the guarantee</div>
       <div class="say">"This is exactly the kind of business we go all in on. So there's more on the table for you. We'll increase your profit within ninety days, or we refund every dollar you've paid us. We only put that behind companies we're confident about, and you're one of them."</div>
       <div class="note">Then the ask, now that they've heard the real number:</div>
       <div class="say">"I'm not asking you to commit to anything today. What I need to know is whether the shape of this even works. Now that you've heard the base, about [the number from the panel] a month plus a share of the new revenue, is that workable for the business while we grow it, or is it a non-starter? You can tell me it's not a fit, that's fine. I just don't want to put the team on three or four days of audit work if it was never going to work for you either way."</div>
@@ -361,7 +411,7 @@
     </div>
 
     <div class="card">
-      <div class="step">11 · IF AGENCY · no guarantee</div>
+      <div class="step"><button type="button" class="jumpbtn" data-jump='#priceVerdict' title="Show where this goes on the right">↗ answers</button>11 · IF AGENCY · no guarantee</div>
       <div class="say">"You're a business we'd want to work with and we're confident we can grow you. You wouldn't be on the guarantee track, that's reserved for a small set of companies where we dedicate a team almost exclusively to them, but we'd still work on performance, so past the minimum we only make more when we grow yours."</div>
       <div class="note"><b>Different price mechanics from Portfolio.</b> Quote the greater-of formula, not the base-plus-share one. Then ask the same money question and get the yes or no.</div>
       <div class="say">"Now that you've heard it, is the seven thousand a month workable for the business while we grow it, or is it a non-starter? You can tell me it's not a fit, that's fine. I just don't want to put the team on three or four days of audit work if it was never going to work for you either way."</div>
@@ -370,7 +420,7 @@
     </div>
 
     <div class="card">
-      <div class="step">12 · IF IT'S A DQ</div>
+      <div class="step"><button type="button" class="jumpbtn" data-jump='#prospectVerdict' title="Show where this goes on the right">↗ answers</button>12 · IF IT'S A DQ</div>
       <div class="say">"I'll be straight with you, I don't think we're the right fit right now, and here's why."</div>
       <div class="say">"But I don't want to leave you with nothing, so if I were you the thing I'd do is..."</div>
       <div class="note">Offer a referral if you have one. Log the reason. If it's a spend or size problem, switch to the Coaching Program script with the mode toggle up top.</div>
@@ -388,7 +438,7 @@
     </div>
 
     <div class="card">
-      <div class="step">14 · BEFORE YOU HANG UP</div>
+      <div class="step"><button type="button" class="jumpbtn" data-jump='#ghlCopyBtn' title="Show where this goes on the right">↗ answers</button>14 · BEFORE YOU HANG UP</div>
       <div class="note">• <b>Send the deck if they ask, replying to the thread you're already on. Send the one deck that matches the track you routed them to, never both.</b><br>
       &nbsp;&nbsp;&nbsp;Portfolio → <a href="https://gamma.app/docs/V4-YAMU-Partner-Portfolio-fudsmtqzcd9kn1j" target="_blank" rel="noopener">V4 Partner</a> &nbsp;·&nbsp; Agency → <a href="https://gamma.app/docs/V4-YAMU-Agency-Performance-g18q59j6gerpdvf" target="_blank" rel="noopener">V4 Agency</a><br>
       • Book the next step, with the decider on the invite.<br>
@@ -599,7 +649,7 @@
         <div class="tag">Ask Q1 to get the gap</div>
         <div class="why"></div>
       </div>
-      <div style="margin-top:8px"><button type="button" class="btn ghost" onclick="copyGhlHandoff()">Copy for GHL</button> <span class="note" style="display:inline">fixed format, paste into the opportunity notes</span></div>
+      <div style="margin-top:8px"><button type="button" class="btn ghost" id="ghlCopyBtn" onclick="copyGhlHandoff()">Copy for GHL</button> <span class="note" style="display:inline">fixed format, paste into the opportunity notes</span></div>
     </div>
 
     <!-- ============ LIVE PRICE QUOTE ============ -->
@@ -1762,6 +1812,55 @@
   autoFill(); renderVerdict(); applyMode();
   updateSyncBadge(); if(syncCfg().url) syncPull(true);
   ['strategy','coaching'].forEach(m=>{const el=scriptEl(m);if(el)el.addEventListener('input',scheduleSaveScripts);});
+</script>
+<script>
+/* Click a question (or an "answers" button) on the left and the right side scrolls to where the
+   answer goes. Only the right column moves; the script stays where it is. */
+(function(){
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function anchorFor(t){
+    var pc = t.closest('.pc'); if (pc) return pc;
+    if (t.matches('.card, .verdict, [id^=engine]')) return t;
+    var r = t;
+    while (r.parentElement && !r.parentElement.matches('.card, .inputs, .tabpane, .col')) r = r.parentElement;
+    var prev = r.previousElementSibling;
+    return (prev && prev.classList.contains('ask')) ? prev : r;
+  }
+  function flash(el){ el.classList.remove('jumpflash'); void el.offsetWidth; el.classList.add('jumpflash'); }
+  function jumpTo(sel){
+    var t = document.querySelector(sel); if (!t) return false;
+    var pane = t.closest('.tabpane');
+    if (pane && pane.classList.contains('hidden') && typeof showTab === 'function') showTab(pane.id.replace('pane-', ''));
+    var a = anchorFor(t), col = a.closest('.col'), behavior = 'auto';   // instant: a smooth scroll can stall and land late, and reps shouldn't wait mid-call
+    if (col && getComputedStyle(col).overflowY !== 'visible' && col.scrollHeight > col.clientHeight + 4) {
+      // a question lands a fifth of the way down so you can see what's around it; a whole panel lands at the top
+      var lead = a.offsetHeight > col.clientHeight * 0.5 ? 8 : col.clientHeight * 0.22;
+      var top = col.scrollTop + a.getBoundingClientRect().top - col.getBoundingClientRect().top - lead;
+      col.scrollTo({ top: Math.max(0, top), behavior: behavior });
+    } else {
+      a.scrollIntoView({ block: 'center', behavior: behavior });
+    }
+    flash(a); if (a !== t && !t.closest('.pc') && !t.matches('.card, .verdict')) flash(t);
+    if (t.matches('input:not([type=radio]):not([type=checkbox]):not([type=hidden]), textarea')) {
+      try { t.focus({ preventScroll: true }); } catch (e) { t.focus(); }
+    }
+    return true;
+  }
+  window.jumpTo = jumpTo;
+  document.addEventListener('click', function(e){
+    var el = e.target.closest && e.target.closest('[data-jump]'); if (!el) return;
+    var isBtn = el.classList.contains('jumpbtn');
+    if (!isBtn && typeof SCRIPT_EDITING !== 'undefined' && SCRIPT_EDITING) return;   // editing the script: let clicks edit
+    var s = window.getSelection && window.getSelection();
+    if (!isBtn && s && !s.isCollapsed) return;                                         // selecting text: don't jump
+    e.preventDefault(); jumpTo(el.getAttribute('data-jump'));
+  });
+  document.addEventListener('keydown', function(e){
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.q[data-jump]')) {
+      e.preventDefault(); jumpTo(e.target.getAttribute('data-jump'));
+    }
+  });
+})();
 </script>
 </body>
 </html>
