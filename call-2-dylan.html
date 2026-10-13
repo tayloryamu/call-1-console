@@ -571,11 +571,15 @@
       <h3>Business</h3>
       <span class="ask">How long has the business been up and running?</span><input class="f" id="m_age">
       <span class="ask">What's your monthly revenue right now?</span><input class="f" id="m_mrev" placeholder="$250k/mo">
-      <span class="ask">And annual revenue?</span><input class="f" id="m_arev" placeholder="$3M">
+      <span class="ask">And over the last twelve months, roughly what did you do in revenue?</span><input class="f" id="m_arev" placeholder="$3M">
       <span class="ask opt">If it's seasonal, what's revenue outside of season?</span><input class="f" id="m_season">
       <span class="ask">What's your average sale or order value?</span><input class="f" id="m_aov">
       <span class="ask">What's your gross margin on a typical sale?</span><input class="f" id="m_margin">
-      <span class="ask">What's your <abbr title="Lifetime Value, the total revenue one customer brings over their lifetime">LTV</abbr>? If you don't have it, purchase frequency and retention?</span><input class="f" id="m_ltv">
+      <span class="ask">What's your <abbr title="Lifetime Value, the total revenue one customer brings over their lifetime">LTV</abbr>? If you don't have it, purchase frequency and retention?</span><input class="f" id="m_ltv" placeholder="or fill the two boxes below">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:-2px 0 6px">
+        <div><label>No LTV? Purchases a year</label><input class="f" id="m_freq" placeholder="3"></div>
+        <div><label>Years a customer stays</label><input class="f" id="m_years" placeholder="2"></div>
+      </div>
       <span class="ask">Rough sense of what it costs to acquire a customer?</span><input class="f" id="m_cac">
       <span class="ask">What's your current <abbr title="Return On Ad Spend, revenue divided by ad spend">ROAS</abbr>?</span><input class="f" id="m_roas">
       <span class="ask">Where are your customers coming from now? Warm network, referrals, or cold sources?</span><input class="f" id="m_src">
@@ -663,7 +667,7 @@
         <h3>⚑ Price quote <span class="secbadge">say it out loud</span></h3>
         <div class="note"><b>Two different formulas now.</b> Portfolio is a base plus a share of net new. Agency is the greater of the $7k minimum or the performance fee. Fill these in and read the track you routed them to.</div>
         <span class="ask">Trailing 12 month average monthly revenue</span>
-        <input class="f" id="q_ttm" placeholder="$100k/mo  ·  blank = use monthly revenue above">
+        <input class="f" id="q_ttm" placeholder="blank = Q3 last twelve months ÷ 12">
         <div class="grid3" style="margin-top:8px">
           <div><label>Current ad spend /mo</label><input class="f" id="q_spend" placeholder="$30k"></div>
           <div><label>New revenue we add /mo</label><input class="f" id="q_lift" placeholder="$50k"></div>
@@ -697,8 +701,8 @@
         </div>
 
         <div class="pc">
-          <div class="lab"><span class="n">2</span>Revenue floor</div>
-          <div class="bar">Pass = $83k/mo or more (over $1M a year, the Portfolio bar). Border = $50k to $83k/mo, which is the Agency track. <b>No = under $50k/mo, which Dylan set as an automatic DQ on 2026-09-30.</b></div>
+          <div class="lab"><span class="n">2</span>Revenue floor <span class="secbadge pcauto" id="pc2auto">auto</span></div>
+          <div class="bar">Judged on the twelve-month average, and marks itself from the revenue answers until you click one. Pass = $83k/mo or more (over $1M a year, the Portfolio bar). Border = $50k to $83k/mo, which is the Agency track. <b>No = under $50k/mo, which Dylan set as an automatic DQ on 2026-09-30.</b></div>
           <div class="seg" data-pc="2">
             <label class="pass"><input type="radio" name="pc2" value="pass">$83k+/mo</label>
             <label class="bord"><input type="radio" name="pc2" value="bord">$50-83k/mo</label>
@@ -707,7 +711,7 @@
         </div>
 
         <div class="pc">
-          <div class="lab"><span class="n">3</span>Ad spend floor <span class="secbadge">Portfolio only</span></div>
+          <div class="lab"><span class="n">3</span>Ad spend floor <span class="secbadge">Portfolio only</span> <span class="secbadge pcauto" id="pc3auto">auto</span></div>
           <div class="bar">$20k a month in current spend is the <b>Portfolio</b> bar. The Agency track has <b>no ad spend minimum</b>, because the $7k monthly minimum does that job. So Under blocks Portfolio and nothing else.</div>
           <div class="seg" data-pc="3">
             <label class="pass"><input type="radio" name="pc3" value="pass">$20k+</label>
@@ -764,7 +768,7 @@
     </div>
 
     <!-- ============ DECISION ENGINE ============ -->
-    <div class="card engine demoted" id="engineCard">
+    <div class="card engine demoted hidden" id="engineCard"><!-- retired 2026-10-13: the pre-V4 ad-spend model -->
       <div class="inputs">
         <h3>⚑ Ad-spend read <span class="secbadge">secondary</span></h3>
         <div class="note">Reference only for the old performance model (spend thresholds, blockers, affordability). Prospect fit above is the call. Use this when spend actually matters.</div>
@@ -994,10 +998,13 @@
     return '$'+Math.round(n).toLocaleString();
   }
   function gpRatio(){
-    const ltv=amt(fv('m_ltv')), cac=amt(fv('m_cac')), gm=pct(fv('m_margin'));
+    const ltvTyped=amt(fv('m_ltv')), cac=amt(fv('m_cac')), gm=pct(fv('m_margin'));
+    const aovL=amt(fv('m_aov')), fq=parseFloat(fv('m_freq')), yr=parseFloat(fv('m_years'));
+    const est=(ltvTyped===null&&aovL&&fq>0&&yr>0)?aovL*fq*yr:null;   // script Q6: no LTV? frequency x retention
+    const ltv=ltvTyped!==null?ltvTyped:est;
     if(ltv===null||cac===null||!cac) return null;
     const gp = gm===null ? ltv : ltv*gm;
-    return {ratio:gp/cac, ltv:ltv, cac:cac, gm:gm, gp:gp};
+    return {ratio:gp/cac, ltv:ltv, cac:cac, gm:gm, gp:gp, est:est!==null};
   }
   function renderGP(){
     const el=document.getElementById('gpMetric'), v=document.getElementById('gpVal'), n=document.getElementById('gpNote');
@@ -1011,8 +1018,8 @@
     v.textContent=g.ratio.toFixed(1);
     el.classList.add(g.ratio>=3?'good':g.ratio>=2?'warn':'bad');
     n.textContent = (g.gm===null)
-      ? 'LTV '+fmtP(g.ltv)+' ÷ CAC '+fmtP(g.cac)+' · no gross margin given, this is raw LTV:CAC'
-      : 'LTV '+fmtP(g.ltv)+' × '+Math.round(g.gm*100)+'% margin = '+fmtP(g.gp)+' GP ÷ CAC '+fmtP(g.cac);
+      ? (g.est?'Est. LTV (AOV × purchases × years) ':'LTV ')+fmtP(g.ltv)+' ÷ CAC '+fmtP(g.cac)+' · no gross margin given, this is raw LTV:CAC'
+      : (g.est?'Est. LTV (AOV × purchases × years) ':'LTV ')+fmtP(g.ltv)+' × '+Math.round(g.gm*100)+'% margin = '+fmtP(g.gp)+' GP ÷ CAC '+fmtP(g.cac);
   }
 
   function fmt(n){
@@ -1081,6 +1088,7 @@
     setBadge();
     renderGP();
   }
+  (function(){ const gpm=document.getElementById('gpMetric'), cac=document.getElementById('m_cac'); if(gpm&&cac) cac.insertAdjacentElement('afterend',gpm); })();
   function resyncAuto(){Object.keys(AUTO).forEach(k=>AUTO[k]=true);autoFill();renderVerdict();toast('Re-synced from your answers');}
 
   /* ---------- call mode + coaching fit engine ---------- */
@@ -1094,7 +1102,7 @@
     document.getElementById('script-strategy').classList.toggle('hidden',c);
     document.getElementById('script-coaching').classList.toggle('hidden',!c);
     document.getElementById('engineProspect').classList.toggle('hidden',c);
-    document.getElementById('engineCard').classList.toggle('hidden',c);
+    document.getElementById('engineCard').classList.add('hidden');   // retired: pre-V4 ad-spend model
     document.getElementById('engineCoach').classList.toggle('hidden',!c);
     document.querySelectorAll('#modeTog button').forEach(b=>b.classList.toggle('on',b.dataset.mode===MODE));
     document.getElementById('modePill').textContent=c?'Lead with the guarantee · Qualify PMF, margin, time · One-call close':"Qualify, don't sell · Route the track · Quote the number live";
@@ -1180,19 +1188,23 @@
   }
   /* ---- gap + fee math, shared by the Gap panel and the Price panel ---- */
   function gapNumbers(){
-    const baseline=amt(fv('q_ttm'))||amt(fv('m_mrev'));
-    const target=amt(fv('g_target'));
+    // baseline = the twelve-month average: typed in the price panel, else Q3 / 12, else current monthly
+    const bTyped=money(fv('q_ttm')), bYear=annualRevAuto?null:money(fv('m_arev')), bNow=money(fv('m_mrev'));
+    const baseline=bTyped||(bYear?bYear/12:null)||bNow||null;
+    const baselineSrc=bTyped?'price panel':(bYear?'Q3, last twelve months ÷ 12':(bNow?'current monthly revenue, ask Q3 for the twelve-month total':null));
+    const target=money(fv('g_target'));
     const margin=pct(fv('g_margin'))||pct(fv('m_margin'))||pct(fv('b_margin'));
     const marginSrc=pct(fv('g_margin'))?'Q4':(pct(fv('m_margin'))?'business panel':(pct(fv('b_margin'))?'business panel':null));
     const revGap=(baseline&&target&&target>baseline)?(target-baseline):null;
     const profitGap=(revGap!==null&&margin)?revGap*margin:null;
-    return {baseline,target,margin,marginSrc,revGap,profitGap,shrinking:!!(baseline&&target&&target<=baseline)};
+    return {baseline,baselineSrc,target,margin,marginSrc,revGap,profitGap,shrinking:!!(baseline&&target&&target<=baseline)};
   }
   function feeNumbers(){
     const g=gapNumbers();
     const ttm=g.baseline;
-    const spend=amt(fv('q_spend'))||amt(fv('mk_total'));
-    const liftTyped=amt(fv('q_lift'));
+    // ad spend for the 5%: typed in the price panel, else Meta + Google + Other from Q11 (never total marketing)
+    const spendTyped=money(fv('q_spend')), spend=spendTyped||adSpend()||null;
+    const liftTyped=money(fv('q_lift'));
     const lift=liftTyped||g.revGap;
     const basePct=parseFloat((fv('q_base')||'5').replace(/[^0-9.]/g,''))||5;
     const newPct=parseFloat((fv('q_new')||'10').replace(/[^0-9.]/g,''))||10;
@@ -1200,9 +1212,11 @@
     const pBase=ttm?ttm*(basePct/100):null;
     const pShare=lift?lift*(newPct/100):null;
     const pTotal=pBase!==null?pBase+(pShare||0):null;
-    const aPerf=(spend?spend*0.05:0)+(lift?lift*0.05:0);
+    const aPerf=(spend?spend*0.05:0)+(lift?lift*0.05:0);   // at target: ad spend plus the revenue we add
     const aPay=Math.max(AG_MIN,aPerf);
-    return {ttm,spend,lift,liftFromGap:!liftTyped&&!!g.revGap,basePct,newPct,AG_MIN,pBase,pShare,pTotal,aPerf,aPay,onFloor:aPerf<AG_MIN};
+    const aTodayPerf=spend?spend*0.05:0;                   // today: nothing above baseline yet
+    const aToday=Math.max(AG_MIN,aTodayPerf);               // the number the rep reads out loud
+    return {ttm,spend,spendFromAds:!spendTyped&&!!spend,lift,liftFromGap:!liftTyped&&!!g.revGap,basePct,newPct,AG_MIN,pBase,pShare,pTotal,aPerf,aPay,aTodayPerf,aToday,onFloor:aPerf<AG_MIN};
   }
   /* How many times the monthly profit gap covers the monthly fee, at target.
      GAP_GREEN and GAP_AMBER are judgment calls, not V4 policy. Change them here. */
@@ -1226,6 +1240,22 @@
     return {r,rA,rP,tr,basis,pfPossible};
   }
 
+  /* Revenue floor (2) and ad spend floor (3) mark themselves from the numbers until the rep clicks one. */
+  const REV_FLOOR=50000, PF_SPEND_MIN=20000;
+  const PC_AUTO={pc2:true,pc3:true};
+  function markPcAuto(){['pc2','pc3'].forEach(k=>{const b=document.getElementById(k+'auto'); if(b){b.textContent=PC_AUTO[k]?'auto':'manual'; b.style.opacity=PC_AUTO[k]?'1':'.55';}});}
+  function autoPc(){
+    const g=gapNumbers(), f=feeNumbers();
+    const pick=(k,v)=>{ if(!PC_AUTO[k]) return; document.querySelectorAll('input[name='+k+']').forEach(r=>{r.checked=(v!==null&&r.value===v);}); };
+    pick('pc2', g.baseline ? (g.baseline>=PF_REV_BAR?'pass':(g.baseline>=REV_FLOOR?'bord':'no')) : null);
+    pick('pc3', f.spend ? (f.spend>=PF_SPEND_MIN?'pass':'no') : null);
+    markPcAuto();
+  }
+  ['change','input'].forEach(ev=>document.addEventListener(ev,e=>{
+    if(e.target.matches('input[name=pc2],input[name=pc3]')&&e.isTrusted){ PC_AUTO[e.target.name]=false; markPcAuto(); return; }
+    if(e.target.matches('#q_ttm,#q_spend,#m_mrev,#m_arev,#mk_meta,#mk_google,#mk_other')){ autoPc(); renderProspect(); renderGap(); renderPrice(); }
+    if(e.target.matches('#m_aov,#m_freq,#m_years')) renderGP();
+  }));
   function renderGap(){
     const box=document.getElementById('gapVerdict'), eng=document.getElementById('engineGap'); if(!box) return;
     const g=gapNumbers(), f=feeNumbers();
@@ -1273,7 +1303,7 @@
     const L=[
       'YAMU DISCOVERY · '+(fv('p_name')||'')+' · '+(fv('p_co')||''),
       'TRACK: '+((pv&&pv.textContent.trim())||'not routed'),
-      'BASELINE (T12 avg /mo): '+money(g.baseline),
+      'BASELINE (T12 avg /mo): '+money(g.baseline)+(g.baselineSrc&&g.baselineSrc!=='price panel'?' (from '+g.baselineSrc+')':''),
       'TARGET (12mo /mo): '+money(g.target),
       'TIMELINE: '+fv('g_timeline'),
       'PERSONAL WHY: '+fv('g_why'),
@@ -1286,9 +1316,9 @@
       'REVENUE GAP /MO: '+money(g.revGap),
       'PROFIT GAP /MO: '+money(g.profitGap),
       (function(){ const tr=routedTrack();
-        if(tr==='agency') return 'FEE QUOTED: Agency '+money(f.aPay)+' /mo (greater of $7,000 or 5% ad spend + 5% net new)';
+        if(tr==='agency') return 'FEE QUOTED: Agency '+money(f.aToday)+' /mo today, '+money(f.aPay)+' /mo at target (greater of $7,000 or 5% ad spend + 5% net new)';
         if(tr==='portfolio') return 'FEE QUOTED: Portfolio '+money(f.pTotal)+' /mo at target (5% base + 10% net new)';
-        return 'FEE (not routed): Portfolio '+(f.pTotal!==null?money(f.pTotal):'')+' /mo · Agency '+money(f.aPay)+' /mo'; })(),
+        return 'FEE (not routed): Portfolio '+(f.pTotal!==null?money(f.pTotal):'')+' /mo · Agency '+money(f.aToday)+' /mo today'; })(),
       'FATHOM: '+fv('p_fathom'),
       '',
       'AUDIT: lead with Q2. Do not recommend anything in Q3 again. Build the model toward the Q1 target. Call 2 opens by reading Q1, Q2 and Q4 back.'
@@ -1322,12 +1352,10 @@
     } else { pf.push('Need their trailing twelve month average monthly revenue.'); }
 
     ag.push('Monthly minimum: <b>'+money(AG_MIN)+'</b>');
-    ag.push('Performance fee, part 1: '+(spend?AG_SPEND+'% of '+money(spend)+' ad spend = <b>'+money(spend*(AG_SPEND/100))+'</b>':'5% of ad spend, <i>not entered yet</i>'));
-    ag.push('Performance fee, part 2: '+(lift?AG_REV+'% of '+money(lift)+' net new = <b>'+money(lift*(AG_REV/100))+'</b>':'5% of revenue above baseline, <i>not entered yet</i>'));
-    if(spend||lift) ag.push('Performance fee total so far: <b>'+money(aPerf)+'</b>'+((!spend||!lift)?' <i>(incomplete, fill both boxes)</i>':''));
-    if(spend||lift) ag.push(onFloor
-      ? 'Performance fee is under the minimum, so they pay the floor: <b>'+money(aPay)+' a month</b>'
-      : 'Performance fee beats the minimum, so they pay <b>'+money(aPay)+' a month</b>');
+    ag.push('<b>Today, read this one:</b> '+(spend
+      ? AG_SPEND+'% of '+money(spend)+' ad spend'+(F.spendFromAds?' (Meta + Google + Other)':'')+' = '+money(F.aTodayPerf)+', so they pay <b>'+money(F.aToday)+' a month</b>'+(F.aTodayPerf<AG_MIN?' (the minimum)':'')
+      : 'ad spend <i>not entered yet</i>, so the minimum, <b>'+money(AG_MIN)+' a month</b>'));
+    ag.push('At their target: plus '+AG_REV+'% of '+(lift?money(lift)+' net new = '+money(lift*(AG_REV/100))+', so <b>'+money(aPay)+' a month</b>':'the revenue we add, <i>not entered yet</i>'));
     ag.push('Whichever is greater, never both. No ad spend minimum on this track.');
 
     // the gap, next to the fee (Dylan, 2026-10-01)
@@ -1341,14 +1369,16 @@
     } else {
       gapHtml='<div class="caution" style="margin-top:6px"><b>No gap built yet.</b> Run Gap &amp; Pain and the recap before you quote. Rule 7.</div>';
     }
+    if(G.baselineSrc&&G.baselineSrc!=='price panel') pf.push('<i>Baseline from '+G.baselineSrc+'. Type the twelve-month average in the box to override.</i>');
     if(F.liftFromGap) pf.push('<i>New revenue we add is taken from the Q1 gap ('+money(lift)+'/mo). Type a number in the box to override.</i>');
-    box.className='verdict '+(noDecider?'v-amber':'v-teal'); setBorder(eng,noDecider?'v-amber':'v-teal');
-    box.innerHTML=gapHtml+'<div class="tag">Portfolio '+(pBase!==null?money(pBase)+'/mo + '+newPct+'% net new':'needs revenue')+'  ·  Agency '+money(aPay)+'/mo</div>'
+    const underFloor=!!(ttm&&ttm<REV_FLOOR);
+    const pcls=underFloor?'v-red':(noDecider?'v-amber':'v-teal'); box.className='verdict '+pcls; setBorder(eng,pcls);
+    box.innerHTML=(underFloor?'<div class="caution"><b>⛔ Under the $50k/mo revenue floor ('+money(ttm)+'/mo).</b> Do not quote. This is a DQ: downsell to coaching with the mode toggle up top.</div>':'')+gapHtml+'<div class="tag">Portfolio '+(pBase!==null?money(pBase)+'/mo + '+newPct+'% net new':'needs revenue')+'  ·  Agency '+money(F.aToday)+'/mo today</div>'
       +'<div class="trace"><b>PORTFOLIO</b><br>'+pf.map(x=>'• '+x).join('<br>')+'<br><br><b>AGENCY</b><br>'+ag.map(x=>'• '+x).join('<br>')+'</div>'
       +(noDecider?'<div class="caution">⚠ Decider is not on the call. Do not quote this today, book the next one with both of them.</div>':'')
-      +(onFloor&&(spend||lift)?'<div class="caution">⚠ At this size the performance fee never beats the floor, so this is effectively a '+money(AG_MIN)+' retainer. Do not oversell the pure performance story.</div>':'')
+      +(onFloor&&(spend||lift)?'<div class="caution">⚠ Even at their target the performance fee stays under the minimum, so this is effectively a '+money(AG_MIN)+' retainer. Do not oversell the pure performance story.</div>':'')
       +'<div class="script"><b>Portfolio:</b> "We charge a base fee as a percentage of your average monthly revenue over the last twelve months, which for you is about '+(pBase!==null?money(pBase):'[base]')+' a month. On top of that we take '+newPct+'% of the new revenue we create above your current baseline. We don\'t charge a performance fee on anything we do below that baseline."</div>'
-      +'<div class="script"><b>Agency:</b> "It is one price. You pay the greater of seven thousand a month, or five percent of your ad spend plus five percent of the revenue we create above your twelve month average. Whichever is greater, never both. For you that is about '+money(aPay)+' a month today, and the only way it goes up is if your revenue goes up first."</div>';
+      +'<div class="script"><b>Agency:</b> "It is one price. You pay the greater of seven thousand a month, or five percent of your ad spend plus five percent of the revenue we create above your twelve month average. Whichever is greater, never both. For you that is about '+money(F.aToday)+' a month today, and the only way it goes up is if your revenue goes up first."</div>';
   }
   ['change','input'].forEach(ev=>document.addEventListener(ev,e=>{
     if(e.target.matches('#q_ttm,#q_base,#q_new,#q_lift,#q_spend,#m_mrev,#mk_total,#g_target,#g_margin,#m_margin,#b_margin')){ renderGap(); renderPrice(); }
@@ -1497,7 +1527,7 @@
     const coaching=MODE==='coaching';
     const dn=document.getElementById('cf_downsold')&&document.getElementById('cf_downsold').checked;
     const L=[];
-    L.push(coaching?"YAMU COACHING PROGRAM CALL SUMMARY":"YAMU CALL 1 QUALIFICATION SUMMARY");
+    L.push(coaching?"YAMU COACHING PROGRAM CALL SUMMARY":"YAMU FIT CALL SUMMARY");
     L.push(val('p_name')+ (val('p_co')?" · "+val('p_co'):"") + (val('p_email')?" · "+val('p_email'):""));
     if(dn) L.push("** DOWNSOLD FROM STRATEGY -> COACHING PROGRAM **");
     L.push("");
@@ -1518,8 +1548,10 @@
       if(s.bord.length) L.push("  Borderline: "+nm(s.bord));
       if(s.no.length) L.push("  No: "+nm(s.no));
       if(s.un.length) L.push("  Open: "+nm(s.un));
-      const q=currentQ(); const blk=blockersList(); const trg=triggersList();
-      if(q||blk.length||val('tc')||val('scale')){
+      const Gs=gapNumbers(), Fs=feeNumbers(), m$=x=>x?'$'+Math.round(x).toLocaleString():'—';
+      L.push("PRICE: baseline "+m$(Gs.baseline)+"/mo"+(Gs.baselineSrc?" ("+Gs.baselineSrc+")":"")+" | Agency "+m$(Fs.aToday)+"/mo today, "+m$(Fs.aPay)+"/mo at target | Portfolio base "+m$(Fs.pBase)+"/mo");
+      const q=null, blk=[], trg=[];
+      if(false){   // retired 2026-10-13: the pre-V4 ad-spend read
         let v = blk.length ? MODEL(blk) : (q ? ((q==="3"&&trg.length)?ESC:VERDICTS[q]) : null);
         L.push("");
         L.push("AD-SPEND READ (secondary): "+(v?v.tag.replace(/[^\x00-\x7F]/g,'').trim():"(no ad spend answer)"));
@@ -1559,7 +1591,7 @@
     if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(payload).then(done).catch(fallback); } else { fallback(); }
     function fallback(){const ta=document.createElement('textarea');ta.value=payload;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();done();}
   }
-  function resetAll(){document.querySelectorAll('input,textarea,select').forEach(e=>{if(e.type==='radio'||e.type==='checkbox')e.checked=false;else e.value='';});document.querySelectorAll('.flag').forEach(f=>f.remove());Object.keys(AUTO).forEach(k=>AUTO[k]=true);annualRevAuto=true;autoFill();renderVerdict();applyMode();}
+  function resetAll(){document.querySelectorAll('input,textarea,select').forEach(e=>{if(e.type==='radio'||e.type==='checkbox')e.checked=false;else e.value='';});document.querySelectorAll('.flag').forEach(f=>f.remove());Object.keys(AUTO).forEach(k=>AUTO[k]=true);annualRevAuto=true;PC_AUTO.pc2=PC_AUTO.pc3=true;markPcAuto();autoFill();renderVerdict();applyMode();}
 
   /* ---------- saved calls (localStorage history) ---------- */
   const LS_KEY='yamu_call1_saved_dylan';
