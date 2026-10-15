@@ -488,12 +488,16 @@
 
     <div class="card">
       <div class="step">2 · DISCOVERY · 10 to 15 min</div>
-      <div class="mind">Business basics first, marketing second, economics third. Follow their answers, don't robotically tick a list. <b>Ask the questions on the right and log the answers there.</b></div>
-      <div class="say">"How long have you been running? What's your monthly revenue right now? What's your average sale or order value?"</div>
-      <div class="say">"Where are your customers coming from, warm network, referrals, or cold sources?"</div>
+      <!-- coaching discovery, ad spend first (patch_console_coaching_order.js) -->
+      <div class="mind">Business basics first, marketing second, economics third. Ad spend comes before the economics, so the console has ROAS and CAC ready to read back. Follow their answers, don't robotically tick a list. <b>Click a question to jump to its answer box.</b></div>
+      <div class="say q" data-jump='#m_mrev' tabindex="0" role="button">"How long have you been running? What's your monthly revenue right now?"</div>
+      <div class="say q" data-jump='#m_src' tabindex="0" role="button">"Where are your customers coming from, warm network, referrals, or cold sources?"</div>
       <div class="mind">Most important question. All-warm-network revenue is real signal but behaves differently from cold. Zero cold customers is a flag to address head-on in Qualify.</div>
-      <div class="say">"Have you run paid ads before, Meta or Google? Do you do any email marketing? What's your biggest challenge finding new customers?"</div>
-      <div class="say">"What's your gross margin on a typical sale? Rough sense of what it costs to acquire a customer? Any repeat purchases? What's your refund rate?"</div>
+      <div class="say q" data-jump='#mk_meta' tabindex="0" role="button">"Have you run paid ads before, Meta or Google? What are you spending on them a month? Do you do any email marketing?"</div>
+      <div class="say q" data-jump='#m_aov' tabindex="0" role="button">"What's your average sale or order value, and your gross margin on a typical sale?"</div>
+      <div class="say q" data-jump='#m_roas' tabindex="0" role="button">"Looks like you're getting about <span class="livenum" data-live="roas">[blended ROAS]</span> back on ads, so roughly <span class="livenum" data-live="cac">[CAC]</span> to get a customer. Does that sound right?"</div>
+      <div class="mind">Only if they're running ads. No ad spend: ask "Rough sense of what it costs to acquire a customer?"</div>
+      <div class="say q" data-jump='#pr_repeat' tabindex="0" role="button">"Any repeat purchases? What's your refund rate? And what's your biggest challenge finding new customers?"</div>
     </div>
 
     <div class="card">
