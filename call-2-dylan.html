@@ -153,6 +153,9 @@
   button.btn.ghost:hover{border-color:var(--orange);color:var(--orange);box-shadow:none}
   button.btn.gng{background:var(--teal);color:#04252b;border:0}
   button.btn.gng:hover{filter:brightness(1.08);box-shadow:0 3px 12px -4px var(--teal)}
+  button.btn.aud{background:var(--blue);color:#0b1830;border:0}
+  button.btn.aud:hover{filter:brightness(1.08);box-shadow:0 3px 12px -4px var(--blue)}
+  button.btn.gng,button.btn.aud{min-width:168px}
   #dictBtn{padding:6px 12px;font-size:12px}
   #dictBtn.rec{background:var(--red);color:#fff;border-color:var(--red);animation:dictpulse 1.4s ease-in-out infinite}
   @keyframes dictpulse{0%,100%{box-shadow:0 0 0 0 rgba(240,138,138,.5)}50%{box-shadow:0 0 0 5px rgba(240,138,138,0)}}
@@ -215,6 +218,7 @@
   <input id="p_co" placeholder="Company">
   <input id="p_email" placeholder="Email (for GHL match)" style="min-width:220px">
   <input id="p_fathom" placeholder="Fathom link (optional)" style="min-width:200px">
+  <input type="hidden" id="p_audit">
   <span class="modetog" id="modeTog">
     <button type="button" data-mode="strategy" class="on" onclick="setMode('strategy',true)">Discovery · Two Tracks</button>
     <button type="button" data-mode="coaching" onclick="setMode('coaching',true)">Coaching Program</button>
@@ -455,7 +459,7 @@
       • If access needs a second approver, offer fifteen minutes to do the grants together.<br>
       • Check the grants actually came through while you're still on the call.<br>
       • Run the go / no go from the button below, and note which track you routed them to.</div>
-      <div class="note"><a href="https://audit-request-generator.vercel.app/" target="_blank">audit-request-generator</a></div>
+      <div class="note">• <b>Kick off the audit</b> with the <b>Audit request</b> button at the bottom, next to Go / No-Go. It ticks the platforms from your answers, fills in their name and email, and sends every grant to Audrey.</div>
     </div>
 
     <div class="card">
@@ -895,6 +899,7 @@
   <button class="btn ghost" onclick="openHistory()">History ▾</button>
   <button class="btn alt" onclick="downloadSummary()">Download</button>
   <button class="btn gng" onclick="runGoNoGo()">Go / No-Go ▸</button>
+  <button class="btn aud" id="auditBtn" onclick="openAuditRequest()">Audit request ▸</button>
   <button class="btn warn" onclick="if(confirm('Clear all fields for a new call?'))resetAll()">New call</button>
   <div class="hint">Saved calls live in this browser on this machine. Use Export in History to back them up. When hosted on Vercel this will sync to GHL automatically.</div>
 </div>
@@ -1596,7 +1601,7 @@
     const name=val('p_name').trim(), co=val('p_co').trim(), email=val('p_email').trim(), fathom=val('p_fathom').trim();
     if(!name && !co && !fathom){ toast('Add the prospect name or a Fathom link first'); return; }
     const who=name||co||'this prospect';
-    if(!confirm('Run Go / No-Go for '+who+'?\n\nThis copies the trigger to your clipboard. Paste it into Claude, which will pull the Fathom call and post the Go / No-Go to #yamu-sales-go-no-go.')) return;
+    yamuConfirm({title:'Run the Go / No-Go for '+who+'?', body:'<p>This copies the trigger to your clipboard. Paste it into Claude, which pulls the Fathom call and posts the Go / No-Go to <b>#yamu-sales-go-no-go</b>.</p>', yes:'Yes, copy the trigger'}).then(function(ok){ if(!ok) return;
     const L=['Run the Go/No-Go skill for this prospect and post it to the #yamu-sales-go-no-go Slack channel.',''];
     if(name) L.push('Prospect: '+name);
     if(co) L.push('Company: '+co);
@@ -1606,6 +1611,7 @@
     const done=()=>toast('Go / No-Go trigger copied, paste it into Claude');
     if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(payload).then(done).catch(fallback); } else { fallback(); }
     function fallback(){const ta=document.createElement('textarea');ta.value=payload;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();done();}
+    });
   }
   function resetAll(){document.querySelectorAll('input,textarea,select').forEach(e=>{if(e.type==='radio'||e.type==='checkbox')e.checked=false;else e.value='';});document.querySelectorAll('.flag').forEach(f=>f.remove());Object.keys(AUTO).forEach(k=>AUTO[k]=true);annualRevAuto=true;PC_AUTO.pc2=PC_AUTO.pc3=true;markPcAuto();autoFill();renderVerdict();applyMode();}
 
@@ -2041,6 +2047,149 @@
   ['input', 'change'].forEach(function(ev){ document.addEventListener(ev, function(e){ if (e.target.matches && e.target.matches(WATCH)) refresh(); }); });
   if (typeof resetAll === 'function') { var ra = resetAll; resetAll = function(){ var r = ra.apply(this, arguments); refresh(); return r; }; }
   refresh();
+})();
+</script>
+<script>
+/* audit access request + confirm window (patch_console_audit_request.js) */
+(function(){
+  /* ---------------- the confirm window: nothing fires on one click ---------------- */
+  var css = document.createElement('style');
+  css.textContent = '.ycf-bg{position:fixed;inset:0;background:rgba(4,10,16,.72);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}'
+    + '.ycf{background:var(--card,#141f2c);border:1px solid var(--line,#25384a);border-radius:12px;max-width:640px;width:100%;max-height:88vh;overflow:auto;padding:18px 20px;box-shadow:0 20px 60px rgba(0,0,0,.5)}'
+    + '.ycf h3{margin:0 0 10px;font-size:18px;color:#fff}.ycf p{margin:6px 0;color:var(--ink,#dbe6f1);font-size:14px}'
+    + '.ycf .ycf-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}'
+    + '.ycf .ycf-no{background:transparent;color:var(--ink,#dbe6f1);border:1px solid var(--line,#25384a)}'
+    + '.ycf label.plat{display:inline-flex;gap:6px;align-items:center;margin:3px 10px 3px 0;font-size:13px;cursor:pointer}'
+    + '.ycf .grp{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#8194a9);margin:10px 0 2px}'
+    + '.ycf .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}'
+    + '.ycf input.f{width:100%}.ycf pre{white-space:pre-wrap;font:12.5px/1.5 inherit;background:var(--panel2,#0f1a25);border:1px solid var(--line,#25384a);border-radius:8px;padding:10px;max-height:240px;overflow:auto;color:var(--ink,#dbe6f1)}'
+    + '.ycf .meta{font-size:12px;color:var(--muted,#8194a9)}.ycf .auto{color:#58cddb;font-size:11px;margin-left:4px}'
+    + '.audstatus{font-size:12px;color:var(--muted,#8194a9);flex-basis:100%;text-align:center}';
+  document.head.appendChild(css);
+  // opts: {title, body (html), yes, no, onRender(el)} → Promise<boolean>
+  window.yamuConfirm = function(opts){
+    return new Promise(function(resolve){
+      var bg = document.createElement('div'); bg.className = 'ycf-bg';
+      bg.innerHTML = '<div class="ycf" role="dialog" aria-modal="true"><h3></h3><div class="ycf-body"></div><div class="ycf-btns"><button type="button" class="btn ycf-no"></button><button type="button" class="btn ycf-yes"></button></div></div>';
+      bg.querySelector('h3').textContent = opts.title || 'Are you sure?';
+      bg.querySelector('.ycf-body').innerHTML = opts.body || '';
+      bg.querySelector('.ycf-no').textContent = opts.no || 'Cancel';
+      bg.querySelector('.ycf-yes').textContent = opts.yes || 'Yes';
+      function done(v){ document.removeEventListener('keydown', key, true); bg.remove(); resolve(v); }
+      function key(e){ if (e.key === 'Escape') { e.preventDefault(); done(false); } }
+      bg.querySelector('.ycf-no').onclick = function(){ done(false); };
+      bg.querySelector('.ycf-yes').onclick = function(){ if (opts.check && !opts.check(bg)) return; done(true); };
+      bg.addEventListener('mousedown', function(e){ if (e.target === bg) done(false); });
+      document.addEventListener('keydown', key, true);
+      document.body.appendChild(bg);
+      if (opts.onRender) opts.onRender(bg);
+      bg.querySelector('.ycf-no').focus();   // Enter on open cancels, never confirms
+    });
+  };
+
+  /* ---------------- the audit access request ---------------- */
+  var AUDIT_TO = 'audrey@yamumedia.com', AUDIT_NAME = 'Audrey';   // Audrey runs every audit (standup 2026-10-15)
+  var META_PORTFOLIO = '381946912971185';
+  var HUBSPOT_INVITE = 'https://app.hubspot.com/l/settings/users/partnerInviteLink/MjI2MzgxOTI5ODU4NTQzMDA';
+  var SUBJECT = 'Performance Marketing -- Audit Access Request';
+  var ADD = function(role, where, steps){ return 'Please add ' + AUDIT_TO + ' as ' + role + ' in your ' + where + ' so we can run the audit.' + (steps ? '\n\nTo add a new user:\n' + steps : ''); };
+  var P = [
+    { id: 'meta', group: 'Ad platforms', label: 'Meta Ads', block: 'Meta Ads\nPlease grant us partner access to your Meta Business Portfolio:\n- Go to business.facebook.com\n- Select Partners\n- Select Add, then choose Give a partner access\n- Enter our YAMU Business Portfolio ID: ' + META_PORTFOLIO + '\n- If prompted, select Agency managing the account\n- Grant these permissions:\n  - Ad account: View only\n  - Facebook page: Insights and Ads\n  - Instagram page: Ads and Insights\n  - Pixel and data sets: Use events datasets' },
+    { id: 'google', group: 'Ad platforms', label: 'Google Ads', block: 'Google Ads\nPlease share your Google Ads account number so we can request access from our end.\n- Go to https://ads.google.com and sign in\n- Your account number is in the top right corner, a 10-digit number like XXX-XXX-XXXX' },
+    { id: 'ga4', group: 'Analytics', label: 'GA4', block: 'Google Analytics (GA4)\n' + ADD('a Viewer', 'GA4 account', '- Go to https://analytics.google.com and sign in\n- Click Admin (the gear, bottom left)\n- Under Property, click Property access management\n- Click + then Add users\n- Enter ' + AUDIT_TO + ', set the role to Viewer\n- Click Add') },
+    { id: 'gsc', group: 'Analytics', label: 'Google Search Console', block: 'Google Search Console\n' + ADD('a Full User', 'Google Search Console', '- Go to https://search.google.com/search-console and sign in\n- Select the right property in the top-left dropdown\n- Click Settings, then Users and permissions\n- Click Add user\n- Enter ' + AUDIT_TO + ', set the permission to Full\n- Click Add') },
+    { id: 'shopify', group: 'Store / site', label: 'Shopify', block: 'Shopify\nCan you share your Shopify URL (it ends in .myshopify.com) and your Collaborator Request Code? With those we request access from our end.\n\nTo find your Shopify URL:\n- Go to Settings (bottom left of your Shopify admin)\n- Click Domains; your .myshopify.com URL is at the top\n\nTo find your Collaborator Request Code:\n- Go to Settings, then Users and permissions\n- Scroll to Collaborators; your Request Code is listed there' },
+    { id: 'woo', group: 'Store / site', label: 'WooCommerce', block: 'WooCommerce\n' + ADD('a Shop Manager', 'WooCommerce store', '- Log in to your WordPress admin\n- Go to Users > Add New User\n- Enter ' + AUDIT_TO + '\n- Set the role to Shop Manager\n- Click Add New User') },
+    { id: 'wordpress', group: 'Store / site', label: 'WordPress', block: 'WordPress\n' + ADD('an Administrator', 'WordPress site', '- Log in to your WordPress admin\n- Go to Users > Add New User\n- Enter ' + AUDIT_TO + '\n- Set the role to Administrator\n- Click Add New User') },
+    { id: 'klaviyo', group: 'Email', label: 'Klaviyo', block: 'Klaviyo\n' + ADD('a Manager', 'Klaviyo account') },
+    { id: 'mailchimp', group: 'Email', label: 'Mailchimp', block: 'Mailchimp\n' + ADD('a Manager', 'Mailchimp account', '- Go to https://admin.mailchimp.com and sign in\n- Click your profile icon (bottom left), then Account & billing\n- Open the Settings tab, then Users\n- Click Invite A User, enter ' + AUDIT_TO + ', set the role to Manager\n- Click Send Invite') },
+    { id: 'hubspot', group: 'CRM', label: 'HubSpot', block: 'HubSpot\nPlease add us as a Partner Admin on your HubSpot account with this link:\n' + HUBSPOT_INVITE },
+    { id: 'ghl', group: 'CRM', label: 'GoHighLevel', block: 'GoHighLevel\n' + ADD('a user', 'GoHighLevel account') },
+    { id: 'apollo', group: 'CRM', label: 'Apollo', block: 'Apollo\n' + ADD('a user', 'Apollo account') },
+  ];
+  var GROUPS = ['Ad platforms', 'Analytics', 'Store / site', 'Email', 'CRM'];
+  function v(id){ var e = document.getElementById(id); return e ? (e.value || '').trim() : ''; }
+  function allText(){ return [].map.call(document.querySelectorAll('.wrap input.f, .wrap textarea.f, #notes'), function(e){ return e.value || ''; }).join(' \n ').toLowerCase(); }
+  // what the call already told us
+  function detect(){
+    var t = allText(), on = {};
+    var num = function(id){ var x = typeof money === 'function' ? money(v(id)) : null; return x && x > 0; };
+    if (num('mk_meta') || /\b(meta|facebook|instagram|fb ads)\b/.test(v('mk_history').toLowerCase())) on.meta = 1;
+    if (num('mk_google') || /\b(google ads|adwords|pmax|google shopping|search ads)\b/.test(t)) on.google = 1;
+    on.ga4 = 1;
+    if (/\b(seo|organic search|search console|gsc)\b/.test(t)) on.gsc = 1;
+    if (/shopify/.test(t)) on.shopify = 1;
+    if (/woo ?commerce|\bwoo\b/.test(t)) on.woo = 1;
+    if (/wordpress/.test(t) && !on.woo) on.wordpress = 1;
+    if (/klaviyo/.test(t)) on.klaviyo = 1;
+    if (/mailchimp/.test(t)) on.mailchimp = 1;
+    if (/hubspot/.test(t)) on.hubspot = 1;
+    if (/gohighlevel|go high level|\bghl\b|highlevel/.test(t)) on.ghl = 1;
+    if (/\bapollo\b/.test(t)) on.apollo = 1;
+    return on;
+  }
+  function me(){ var B = window.YAMU_BOOT || {}; return B.user || {}; }
+  function buildEmail(first, ids, other){
+    var L = ['Hey ' + (first || 'there') + ',', '', 'Really enjoyed chatting earlier. To kick things off on our end, we would like to run an audit so we can see where and how we can help. For that we need access to a few platforms:'];
+    P.forEach(function(p){ if (ids.indexOf(p.id) >= 0) { L.push('', '---', '', p.block); } });
+    if (other) { L.push('', '---', '', other + '\nPlease add ' + AUDIT_TO + ' as a user on your ' + other + ' account so we can include it in the audit.'); }
+    var rep = (me().name || '').split(' ')[0];
+    L.push('', '---', '', 'If you need a hand with any of this, ' + AUDIT_NAME + ' (copied) runs our audits and is happy to help.', '', 'Thanks!', '', 'Best,' + (rep ? '\n' + rep : ''));
+    return L.join('\n');
+  }
+  function stamp(ids, other){
+    var f = document.getElementById('p_audit'); if (!f) return;
+    var names = P.filter(function(p){ return ids.indexOf(p.id) >= 0; }).map(function(p){ return p.label; });
+    if (other) names.push(other);
+    f.value = new Date().toISOString().slice(0, 10) + ' · to ' + AUDIT_TO + ' · ' + names.join(', ');
+  }
+  function audStatus(html){
+    var s = document.getElementById('audStatus');
+    if (!s) { s = document.createElement('div'); s.id = 'audStatus'; s.className = 'audstatus'; var b = document.getElementById('auditBtn'); if (b && b.parentNode) b.parentNode.insertBefore(s, b.nextSibling); }
+    s.innerHTML = html || ''; s.style.display = html ? '' : 'none';
+  }
+  window.openAuditRequest = function(){
+    var name = v('p_name'), co = v('p_co'), email = v('p_email');
+    var who = name || co || 'this prospect', on = detect();
+    var esc2 = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var boxes = GROUPS.map(function(g){
+      return '<div class="grp">' + g + '</div>' + P.filter(function(p){ return p.group === g; }).map(function(p){
+        return '<label class="plat"><input type="checkbox" data-plat="' + p.id + '"' + (on[p.id] ? ' checked' : '') + '>' + p.label + (on[p.id] && p.id !== 'ga4' ? '<span class="auto">from the call</span>' : '') + '</label>';
+      }).join('');
+    }).join('');
+    var prev = v('p_audit');
+    var body = (prev ? '<p class="meta">Already requested: ' + esc2(prev) + '</p>' : '')
+      + '<div class="row2"><div><label class="meta">Send to</label><input class="f ycf-to" value="' + esc2(email) + '" placeholder="their email"></div>'
+      + '<div><label class="meta">First name</label><input class="f ycf-first" value="' + esc2(name.split(' ')[0] || '') + '" placeholder="first name"></div></div>'
+      + boxes
+      + '<div class="grp">Something else</div><input class="f ycf-other" placeholder="Another platform, e.g. Amazon Seller Central, Salesforce (optional)">'
+      + '<p class="meta" style="margin-top:10px">Every grant goes to <b>' + AUDIT_TO + '</b>, and she is the only CC. Subject: ' + SUBJECT + '</p>'
+      + '<pre class="ycf-prev"></pre>';
+    yamuConfirm({
+      title: 'Kick off the audit for ' + who + '?', body: body, yes: 'Yes, open the email in Gmail',
+      onRender: function(el){
+        var redraw = function(){
+          var ids = [].map.call(el.querySelectorAll('[data-plat]:checked'), function(x){ return x.getAttribute('data-plat'); });
+          el.querySelector('.ycf-prev').textContent = buildEmail(el.querySelector('.ycf-first').value.trim(), ids, el.querySelector('.ycf-other').value.trim());
+          el.querySelector('.ycf-yes').disabled = !ids.length && !el.querySelector('.ycf-other').value.trim();
+        };
+        el.addEventListener('input', redraw); el.addEventListener('change', redraw); redraw();
+        window.__audEl = el;
+      },
+      check: function(el){ var to = el.querySelector('.ycf-to').value.trim(); if (!/@/.test(to)) { el.querySelector('.ycf-to').focus(); toast('Add their email first'); return false; } return true; },
+    }).then(function(ok){
+      var el = window.__audEl; window.__audEl = null;
+      if (!ok || !el) return;
+      var to = el.querySelector('.ycf-to').value.trim(), first = el.querySelector('.ycf-first').value.trim(), other = el.querySelector('.ycf-other').value.trim();
+      var ids = [].map.call(el.querySelectorAll('[data-plat]:checked'), function(x){ return x.getAttribute('data-plat'); });
+      var q = new URLSearchParams(); q.set('view', 'cm'); q.set('fs', '1'); q.set('to', to); q.set('cc', AUDIT_TO); q.set('su', SUBJECT); q.set('body', buildEmail(first, ids, other));
+      var acct = me().email ? encodeURIComponent(me().email) : '0';
+      window.open('https://mail.google.com/mail/u/' + acct + '/?' + q.toString(), '_blank', 'noopener');
+      stamp(ids, other);
+      audStatus('Audit email opened for ' + esc2(who) + ' · send it from Gmail · stamped on the call');
+      if (typeof saveCall === 'function' && (name || co)) { try { saveCall(); } catch (e) {} }
+    });
+  };
 })();
 </script>
 
