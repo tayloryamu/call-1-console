@@ -299,18 +299,23 @@
       <div class="say q" data-jump='#q_ttm' tabindex="0" role="button"><span class="qn">3</span>"And over the last twelve months, roughly what did you do in revenue?"</div>
       <div class="note">That one sets the price. It goes in the price panel as a monthly average: the twelve-month total divided by twelve.</div>
       <div class="mayb q" data-jump='#m_season' tabindex="0" role="button"><span class="qn">+</span>If it's seasonal: "What's revenue outside of season?"</div>
+      <div class="qgroup">Ad spend · before unit economics, it fills in three answers for you</div>
+      <div class="say q" data-jump='#mk_history' tabindex="0" role="button"><span class="qn">4</span>"Have you run paid ads before? Meta, Google? What's working and what's not?"</div>
+      <div class="say q" data-jump='#mk_meta' tabindex="0" role="button"><span class="qn">5</span>"What are you spending on ads a month, and how's it split across Meta, Google and anything else?"</div>
+      <div class="say q" data-jump='#mk_total' tabindex="0" role="button"><span class="qn">6</span>"Beyond the ads, anything else you spend on marketing, like freelancers, an agency or partners?"</div>
+      <div class="note">The total marketing box already holds their ad spend. Only add what they spend on top of it.</div>
       <div class="qgroup">Unit economics</div>
-      <div class="say q" data-jump='#m_aov' tabindex="0" role="button"><span class="qn">4</span>"What's your average sale or order value?"</div>
-      <div class="say q" data-jump='#m_margin' tabindex="0" role="button"><span class="qn">5</span>"What's your gross margin on a typical sale?"</div>
+      <div class="say q" data-jump='#m_aov' tabindex="0" role="button"><span class="qn">7</span>"What's your average sale or order value?"</div>
+      <div class="note"><b>B2B:</b> ask it as contract value: "What does a typical contract come to, and is it one tier or several?"</div>
+      <div class="say q" data-jump='#m_margin' tabindex="0" role="button"><span class="qn">8</span>"What's your gross margin on a typical sale?"</div>
       <div class="note">The gap math in 7b is built on this. If they won't give a number, take a range: "somewhere between twenty and forty?"</div>
-      <div class="say q" data-jump='#m_ltv' tabindex="0" role="button"><span class="qn">6</span>"What's your LTV? If you don't have it, purchase frequency and retention?"</div>
-      <div class="say q" data-jump='#m_cac' tabindex="0" role="button"><span class="qn">7</span>"Rough sense of what it costs to acquire a customer?"</div>
-      <div class="say q" data-jump='#m_roas' tabindex="0" role="button"><span class="qn">8</span>"What's your current ROAS?"</div>
-      <div class="say q" data-jump='#m_src' tabindex="0" role="button"><span class="qn">9</span>"Where are your customers coming from now? Warm network, referrals, or cold sources?"</div>
-      <div class="qgroup">Marketing</div>
-      <div class="say q" data-jump='#mk_history' tabindex="0" role="button"><span class="qn">10</span>"Have you run paid ads before? Meta, Google? What's working and what's not?"</div>
-      <div class="say q" data-jump='#mk_meta' tabindex="0" role="button"><span class="qn">11</span>"What are you spending on ads a month, and how's it split across Meta, Google and anything else?"</div>
-      <div class="say q" data-jump='#mk_total' tabindex="0" role="button"><span class="qn">12</span>"What's your total marketing spend a month, including non-ad channels?"</div>
+      <div class="say q" data-jump='#m_roas' tabindex="0" role="button"><span class="qn">9</span>"Looks like you're at about <span class="livenum" data-live="roas">[blended ROAS]</span> blended, revenue over ad spend. Does that match what you see in the platforms?"</div>
+      <div class="note">The console works this out from Q2 and Q5. If they track platform ROAS and it differs, type theirs over it.</div>
+      <div class="say q" data-jump='#m_cac' tabindex="0" role="button"><span class="qn">10</span>"Would about <span class="livenum" data-live="cac">[CAC]</span> to get a new customer sound right?"</div>
+      <div class="note">That estimate is order value ÷ ROAS, and it runs low because ROAS counts repeat buyers. If they know their real number, take theirs. With no ROAS yet, ask: "Rough sense of what it costs to acquire a customer?"</div>
+      <div class="say q" data-jump='#m_ltv' tabindex="0" role="button"><span class="qn">11</span>"What's your LTV? If you don't have it, purchase frequency and retention?"</div>
+      <div class="say q" data-jump='#m_src' tabindex="0" role="button"><span class="qn">12</span>"Where are your customers coming from now? Warm network, referrals, or cold sources?"</div>
+      <div class="qgroup">How they sell</div>
       <div class="say q" data-jump='#mk_channel' tabindex="0" role="button"><span class="qn">13</span>"How do you sell? Direct to customer, or through retailers/wholesale?"</div>
       <div class="say q" data-jump='#mk_email' tabindex="0" role="button"><span class="qn">14</span>"Do you do any email marketing? What platform?"</div>
       <div class="say q" data-jump='#mk_creative' tabindex="0" role="button"><span class="qn">15</span>"Static or video ads?"</div>
@@ -322,10 +327,9 @@
       <div class="say q" data-jump='#pr_inv' tabindex="0" role="button"><span class="qn">20</span>"Any inventory or delivery limits if demand doubled?"</div>
       <div class="qgroup">B2B only · ask these instead of 16 to 20</div>
       <div class="say q" data-jump='#b_cycle' tabindex="0" role="button"><span class="qn">16</span>"What's your sales cycle?"</div>
-      <div class="say q" data-jump='#b_acv' tabindex="0" role="button"><span class="qn">17</span>"Contract value, single or multiple tiers?"</div>
-      <div class="say q" data-jump='#b_crm' tabindex="0" role="button"><span class="qn">18</span>"What CRM do you use?"</div>
-      <div class="say q" data-jump='#b_process' tabindex="0" role="button"><span class="qn">19</span>"What's your current sales process, and what does the sales team look like?"</div>
-      <div class="say q" data-jump='#b_proof' tabindex="0" role="button"><span class="qn">20</span>"Do you have case studies or testimonials?"</div>
+      <div class="say q" data-jump='#b_crm' tabindex="0" role="button"><span class="qn">17</span>"What CRM do you use?"</div>
+      <div class="say q" data-jump='#b_process' tabindex="0" role="button"><span class="qn">18</span>"What's your current sales process, and what does the sales team look like?"</div>
+      <div class="say q" data-jump='#b_proof' tabindex="0" role="button"><span class="qn">19</span>"Do you have case studies or testimonials?"</div>
       <div class="qgroup">The moat · this decides the track</div>
       <div class="say q" data-jump='[data-pc="4"]' tabindex="0" role="button"><span class="qn">21</span>"What can you do that nobody else in your category can? Is it the product itself, the science behind it, an audience you've built, the way you make it or get it to people, or is it just better made than everything else out there?"</div>
       <div class="note">If the answer stays vague, push once: "If someone with the same budget wanted to copy that tomorrow, what would stop them?"</div>
@@ -353,7 +357,7 @@
       <div class="qgroup">Q4 · Cost of staying put</div>
       <div class="say q" data-jump='#g_cost' tabindex="0" role="button"><span class="qn">5</span>"If nothing changes and you're at [current revenue] a year from now, what does that cost you?"</div>
       <div class="mayb q" data-jump='#g_margin' tabindex="0" role="button"><span class="qn">+</span>Probe: "Roughly what's your margin?"</div>
-      <div class="note">Skip the margin probe if you got it at question 5 in 7a.</div>
+      <div class="note">Skip the margin probe if you got it at question 8 in 7a (the box below shows it).</div>
       <div class="qgroup">Where they're going</div>
       <div class="say q" data-jump='[data-pc="6"]' tabindex="0" role="button"><span class="qn">6</span>"What made you start this? Where do you want it to go, are you building it to sell or to keep?"</div>
       <div class="note">Don't rush the founding story. Exit intent here is a signal for the Portfolio track.</div>
@@ -568,20 +572,10 @@
       <span class="ask">What's your monthly revenue right now?</span><input class="f" id="m_mrev" placeholder="$250k/mo">
       <span class="ask">And over the last twelve months, roughly what did you do in revenue?</span><input class="f" id="m_arev" placeholder="$3M">
       <span class="ask opt">If it's seasonal, what's revenue outside of season?</span><input class="f" id="m_season">
-      <span class="ask">What's your average sale or order value?</span><input class="f" id="m_aov">
-      <span class="ask">What's your gross margin on a typical sale?</span><input class="f" id="m_margin">
-      <span class="ask">What's your <abbr title="Lifetime Value, the total revenue one customer brings over their lifetime">LTV</abbr>? If you don't have it, purchase frequency and retention?</span><input class="f" id="m_ltv" placeholder="or fill the two boxes below">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:-2px 0 6px">
-        <div><label>No LTV? Purchases a year</label><input class="f" id="m_freq" placeholder="3"></div>
-        <div><label>Years a customer stays</label><input class="f" id="m_years" placeholder="2"></div>
-      </div>
-      <span class="ask">Rough sense of what it costs to acquire a customer?</span><input class="f" id="m_cac">
-      <span class="ask">What's your current <abbr title="Return On Ad Spend, revenue divided by ad spend">ROAS</abbr>?</span><input class="f" id="m_roas">
-      <span class="ask">Where are your customers coming from now? Warm network, referrals, or cold sources?</span><input class="f" id="m_src">
     </div>
 
     <div class="card">
-      <h3>Marketing</h3>
+      <h3>Ad spend</h3>
       <span class="ask">Have you run paid ads before? Meta, Google? What's working and what's not?</span><textarea class="f" id="mk_history"></textarea>
       <span class="ask">How's the spend split?</span>
       <div class="grid3">
@@ -589,7 +583,25 @@
         <div><label>Google</label><input class="f" id="mk_google" placeholder="$5k/mo"></div>
         <div><label>Other</label><input class="f" id="mk_other" placeholder="$0"></div>
       </div>
-      <span class="ask">What's your total marketing spend a month, including non-ad channels?</span><input class="f" id="mk_total" placeholder="e.g. $35k/mo (freelancers, partners, etc.)">
+      <span class="ask">Total marketing a month: the ads plus anything beyond them</span><input class="f" id="mk_total" placeholder="e.g. $35k/mo (freelancers, partners, etc.)">
+    </div>
+
+    <div class="card">
+      <h3>Unit economics</h3>
+      <span class="ask">What's your average sale or order value? (B2B: contract value)</span><input class="f" id="m_aov">
+      <span class="ask">What's your gross margin on a typical sale?</span><input class="f" id="m_margin">
+      <span class="ask">Blended <abbr title="Return On Ad Spend, revenue divided by ad spend">ROAS</abbr>: does this match their platforms?</span><input class="f" id="m_roas">
+      <span class="ask">Cost to get a new customer (CAC)</span><input class="f" id="m_cac">
+      <span class="ask">What's your <abbr title="Lifetime Value, the total revenue one customer brings over their lifetime">LTV</abbr>? If you don't have it, purchase frequency and retention?</span><input class="f" id="m_ltv" placeholder="or fill the two boxes below">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:-2px 0 6px">
+        <div><label>No LTV? Purchases a year</label><input class="f" id="m_freq" placeholder="3"></div>
+        <div><label>Years a customer stays</label><input class="f" id="m_years" placeholder="2"></div>
+      </div>
+      <span class="ask">Where are your customers coming from now? Warm network, referrals, or cold sources?</span><input class="f" id="m_src">
+    </div>
+
+    <div class="card">
+      <h3>How they sell</h3>
       <span class="ask">How do you sell? Direct to customer, or through retailers/wholesale?</span><input class="f" id="mk_channel">
       <span class="ask">Do you do any email marketing? What platform?</span><input class="f" id="mk_email">
       <span class="ask">Static or video ads?</span><input class="f" id="mk_creative">
@@ -611,7 +623,6 @@
       </div>
       <div class="tabpane hidden" id="pane-b2b">
         <span class="ask">What's your sales cycle?</span><input class="f" id="b_cycle">
-        <span class="ask">Contract value, single or multiple tiers?</span><input class="f" id="b_acv">
         <span class="ask">How do you think about margin, cost and profit?</span><input class="f" id="b_margin">
         <span class="ask">What <abbr title="Customer Relationship Management">CRM</abbr> do you use?</span><input class="f" id="b_crm">
         <span class="ask">What's your current sales process, and what does the sales team look like?</span><input class="f" id="b_process">
@@ -1198,7 +1209,7 @@
   function feeNumbers(){
     const g=gapNumbers();
     const ttm=g.baseline;
-    // ad spend for the 5%: typed in the price panel, else Meta + Google + Other from Q11 (never total marketing)
+    // ad spend for the 5%: typed in the price panel, else Meta + Google + Other from 7a Q5 (never total marketing)
     const spendTyped=money(fv('q_spend')), spend=spendTyped||adSpend()||null;
     const liftTyped=money(fv('q_lift'));
     const lift=liftTyped||g.revGap;
@@ -1960,6 +1971,13 @@
   function round1(x){ return Math.round(x * 10) / 10; }
   function blendedRoas(){ var r = money(fv('m_mrev')), s = adSpend(); return (r && s) ? round1(r / s) + 'x' : ''; }
   function adsOnly(){ var s = adSpend(); return s ? fmt(s) + '/mo' : ''; }
+  function roasNum(){ var t = fv('m_roas'), m = t && t.match(/(\d+(?:\.\d+)?)/); if (m) return parseFloat(m[1]); var r = money(fv('m_mrev')), s = adSpend(); return (r && s) ? r / s : null; }
+  function cacEstimate(){ var a = amt(fv('m_aov')), r = roasNum(); return (a && r) ? a / r : null; }
+  function live(){
+    var r = roasNum(), c = cacEstimate();
+    document.querySelectorAll('[data-live=roas]').forEach(function(el){ el.textContent = r ? round1(r) + 'x' : '[blended ROAS]'; });
+    document.querySelectorAll('[data-live=cac]').forEach(function(el){ el.textContent = c ? fmtP(c) : '[CAC]'; });
+  }
   // fields the console fills with a real value until the rep types their own
   var FILLS = {
     m_roas:   { calc: blendedRoas, tag: 'auto: blended, monthly revenue ÷ ad spend. Ask only if they track platform ROAS.' },
@@ -1988,6 +2006,7 @@
     q_ttm:    function(){ var g = gapNumbers(); return (g.baseline && g.baselineSrc && g.baselineSrc !== 'price panel') ? 'auto: ' + fmt(g.baseline) + '/mo (' + g.baselineSrc + ')' : ''; },
     q_spend:  function(){ var f = feeNumbers(); return f.spendFromAds ? 'auto: ' + fmt(f.spend) + ' (Meta + Google + Other)' : ''; },
     q_lift:   function(){ var f = feeNumbers(); return f.liftFromGap ? 'auto: ' + fmt(f.lift) + ' (the Q1 gap)' : ''; },
+    m_cac:    function(){ var c = cacEstimate(); return (!fv('m_cac') && c) ? 'estimate: ' + fmtP(c) + ' (order value ÷ ROAS), confirm it' : ''; },
   };
   var BASE_PH = {};
   function ghosts(){
@@ -1999,14 +2018,14 @@
       el.classList.toggle('ghostauto', !!g);
     });
   }
-  var WATCH = '#m_mrev,#m_arev,#mk_meta,#mk_google,#mk_other,#mk_total,#m_roas,#m_margin,#b_margin,#g_margin,#g_target,#q_ttm,#q_spend,#q_lift';
+  var WATCH = '#m_aov,#m_cac,#m_mrev,#m_arev,#mk_meta,#mk_google,#mk_other,#mk_total,#m_roas,#m_margin,#b_margin,#g_margin,#g_target,#q_ttm,#q_spend,#q_lift';
   var queued = false;
   function refresh(){
     if (queued) return; queued = true;
     setTimeout(function(){
       queued = false;
       var before = fv('mk_total');
-      fillAuto(); ghosts();
+      fillAuto(); ghosts(); live();
       if (fv('mk_total') !== before && typeof autoFill === 'function') { autoFill(); if (typeof renderVerdict === 'function') renderVerdict(); }
     }, 0);
   }
