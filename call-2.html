@@ -560,7 +560,7 @@
 
   <!-- ============ RIGHT: CAPTURE ============ -->
   <div class="col">
-    <h2>Capture answers</h2>
+    <h2>Capture answers <span style="text-transform:none;letter-spacing:0;font-weight:400;opacity:.75">· click a question to find it in the script</span></h2>
 
     <div class="card">
       <h3>Business</h3>
@@ -1077,6 +1077,7 @@
     if(spend!==null) read.push('ad spend '+fmt(spend)+'/mo');
     if(total!==null) read.push('marketing '+fmt(total)+'/mo');
     if(rev!==null) read.push('annual rev '+fmt(rev));
+    if(spend&&rev) read.push('ads '+Math.round(spend/(rev/12)*100)+'% of revenue');
     document.getElementById('autosrc').innerHTML = read.length
       ? 'Read from your answers: '+read.map(x=>'<span class="src">'+x+'</span>').join(' ')
       : 'Fill in revenue and ad spend above and these select themselves.';
@@ -1892,6 +1893,126 @@
       e.preventDefault(); jumpTo(e.target.getAttribute('data-jump'));
     }
   });
+})();
+</script>
+<script>
+/* reverse jump + auto math (patch_console_reverse_jump.js) */
+(function(){
+  var cols = document.querySelectorAll('.wrap > .col'), LEFT = cols[0], RIGHT = cols[1];
+  if (!LEFT || !RIGHT) return;
+  var css = document.createElement('style');
+  css.textContent = '.wrap > .col:last-child .ask{cursor:pointer}'
+    + '.wrap > .col:last-child .ask:hover{color:#7fb4ff}'
+    + 'input.f.autoval{color:#58cddb;font-style:italic}'
+    + 'input.f.ghostauto::placeholder{color:#58cddb;opacity:.85;font-style:italic}'
+    + '.autotag{display:block;font-size:11px;color:#58cddb;opacity:.8;margin:-4px 0 6px}';
+  document.head.appendChild(css);
+
+  /* ---------------- 1. right to left: find the question in the script ---------------- */
+  // answers whose question is asked under another field's name
+  var ALIAS = { '#m_arev': '#q_ttm', '#m_freq': '#m_ltv', '#m_years': '#m_ltv', '#mk_google': '#mk_meta', '#mk_other': '#mk_meta',
+    '#b_margin': '#m_margin', '#g_timeline': '#g_target', '#q_spend': '#enginePrice', '#q_lift': '#enginePrice', '#q_base': '#enginePrice', '#q_new': '#enginePrice' };
+  function visible(el){ return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length); }
+  function scriptFor(sel){
+    if (!sel) return null;
+    var all = [].slice.call(LEFT.querySelectorAll('[data-jump]')).filter(function(e){ return e.getAttribute('data-jump') === sel && visible(e); });
+    var q = all.filter(function(e){ return e.classList.contains('q'); });
+    var t = q[0] || all[0]; if (!t) return null;
+    return t.classList.contains('jumpbtn') ? (t.closest('.card') || t) : t;
+  }
+  function fieldFor(target){
+    if (target.matches('input, textarea, select')) return target;
+    var ask = target.closest('.ask, label'); if (!ask) return null;
+    if (ask.matches('label')) { var inner = ask.querySelector('input, textarea, select'); if (inner) return inner; }
+    for (var s = ask.nextElementSibling; s; s = s.nextElementSibling) {
+      if (s.matches('input, textarea, select')) return s;
+      var f = s.querySelector && s.querySelector('input, textarea, select'); if (f) return f;
+      if (s.matches('.ask')) break;
+    }
+    return null;
+  }
+  function findInScript(target){
+    var pc = target.closest('[data-pc]');
+    if (pc) return scriptFor('[data-pc="' + pc.getAttribute('data-pc') + '"]') || scriptFor('#engineProspect');
+    var f = fieldFor(target);
+    if (f && f.id) {
+      var sel = '#' + f.id, hit = scriptFor(sel) || scriptFor(ALIAS[sel]);
+      if (hit) return hit;
+    }
+    var eng = target.closest('[id^=engine]');
+    return eng ? scriptFor('#' + eng.id) : null;
+  }
+  function flash(el){ el.classList.remove('jumpflash'); void el.offsetWidth; el.classList.add('jumpflash'); }
+  RIGHT.addEventListener('click', function(e){
+    if (!e.isTrusted || e.target.closest('button, a, .btn, .tab, [data-jump], #histPanel')) return;
+    if (getComputedStyle(LEFT).overflowY === 'visible') return;   // phone layout: one column, don't yank the page
+    var s = findInScript(e.target); if (!s) return;
+    var r = s.getBoundingClientRect(), c = LEFT.getBoundingClientRect();
+    if (r.top < c.top + 24 || r.bottom > c.bottom - 24) {
+      var lead = s.offsetHeight > LEFT.clientHeight * 0.5 ? 8 : LEFT.clientHeight * 0.22;
+      LEFT.scrollTo({ top: Math.max(0, LEFT.scrollTop + r.top - c.top - lead), behavior: 'auto' });
+    }
+    flash(s);
+  });
+
+  /* ---------------- 2. math the console can do itself ---------------- */
+  function $(id){ return document.getElementById(id); }
+  function round1(x){ return Math.round(x * 10) / 10; }
+  function blendedRoas(){ var r = money(fv('m_mrev')), s = adSpend(); return (r && s) ? round1(r / s) + 'x' : ''; }
+  function adsOnly(){ var s = adSpend(); return s ? fmt(s) + '/mo' : ''; }
+  // fields the console fills with a real value until the rep types their own
+  var FILLS = {
+    m_roas:   { calc: blendedRoas, tag: 'auto: blended, monthly revenue ÷ ad spend. Ask only if they track platform ROAS.' },
+    mk_total: { calc: adsOnly,     tag: 'auto: ads only (Meta + Google + Other). Ask what they spend beyond ads.' },
+  };
+  function tagFor(el, text){
+    var t = el.nextElementSibling && el.nextElementSibling.classList.contains('autotag') ? el.nextElementSibling : null;
+    if (!text) { if (t) t.remove(); return; }
+    if (!t) { t = document.createElement('span'); t.className = 'autotag'; el.insertAdjacentElement('afterend', t); }
+    t.textContent = text;
+  }
+  function fillAuto(){
+    Object.keys(FILLS).forEach(function(id){
+      var el = $(id); if (!el) return;
+      var last = el.getAttribute('data-autoval'), cur = el.value.trim();
+      if (cur && cur !== last) { el.classList.remove('autoval'); el.removeAttribute('data-autoval'); tagFor(el, ''); return; }   // the rep's own answer
+      var v = FILLS[id].calc();
+      el.value = v;
+      if (v) { el.setAttribute('data-autoval', v); el.classList.add('autoval'); tagFor(el, FILLS[id].tag); }
+      else { el.removeAttribute('data-autoval'); el.classList.remove('autoval'); tagFor(el, ''); }
+    });
+  }
+  // fields whose number the formulas already fall back to: show it in the box instead of a blank
+  var GHOSTS = {
+    g_margin: function(){ var g = gapNumbers(); return (!pct(fv('g_margin')) && g.margin) ? 'auto: ' + Math.round(g.margin * 100) + '% from 7a, no need to re-ask' : ''; },
+    q_ttm:    function(){ var g = gapNumbers(); return (g.baseline && g.baselineSrc && g.baselineSrc !== 'price panel') ? 'auto: ' + fmt(g.baseline) + '/mo (' + g.baselineSrc + ')' : ''; },
+    q_spend:  function(){ var f = feeNumbers(); return f.spendFromAds ? 'auto: ' + fmt(f.spend) + ' (Meta + Google + Other)' : ''; },
+    q_lift:   function(){ var f = feeNumbers(); return f.liftFromGap ? 'auto: ' + fmt(f.lift) + ' (the Q1 gap)' : ''; },
+  };
+  var BASE_PH = {};
+  function ghosts(){
+    Object.keys(GHOSTS).forEach(function(id){
+      var el = $(id); if (!el) return;
+      if (!(id in BASE_PH)) BASE_PH[id] = el.getAttribute('placeholder') || '';
+      var g = ''; try { g = GHOSTS[id](); } catch (e) { g = ''; }
+      el.setAttribute('placeholder', g || BASE_PH[id]);
+      el.classList.toggle('ghostauto', !!g);
+    });
+  }
+  var WATCH = '#m_mrev,#m_arev,#mk_meta,#mk_google,#mk_other,#mk_total,#m_roas,#m_margin,#b_margin,#g_margin,#g_target,#q_ttm,#q_spend,#q_lift';
+  var queued = false;
+  function refresh(){
+    if (queued) return; queued = true;
+    setTimeout(function(){
+      queued = false;
+      var before = fv('mk_total');
+      fillAuto(); ghosts();
+      if (fv('mk_total') !== before && typeof autoFill === 'function') { autoFill(); if (typeof renderVerdict === 'function') renderVerdict(); }
+    }, 0);
+  }
+  ['input', 'change'].forEach(function(ev){ document.addEventListener(ev, function(e){ if (e.target.matches && e.target.matches(WATCH)) refresh(); }); });
+  if (typeof resetAll === 'function') { var ra = resetAll; resetAll = function(){ var r = ra.apply(this, arguments); refresh(); return r; }; }
+  refresh();
 })();
 </script>
 </body>
